@@ -1,0 +1,42 @@
+function states = assessGraphReservoir(genotype,inputSequence,config)
+
+x1 = (genotype.w_in.*genotype.input_loc*inputSequence')';
+x = x1;
+if config.inputEval
+     for t= 2:length(inputSequence)
+        x(t,:) = feval(config.actvFunc,genotype.w_in*inputSequence(t,:) + (genotype.w*x(t-1,:)'));
+    end 
+else
+    for t= 2:length(inputSequence)
+        x(t,:) = feval(config.actvFunc,(genotype.w*x(t-1,:)').*~genotype.input_loc);
+        x(t,:) = x(t,:) + x1(t,:);
+    end  
+end
+
+if config.AddInputStates
+    states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) inputSequence(config.nForgetPoints+1:end,:) x(config.nForgetPoints+1:end,:)];
+else
+    states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) x(config.nForgetPoints+1:end,:)];
+end
+
+if config.plotStates
+    for i = 1:size(states)
+        subplot(2,1,1)
+        if i > 25
+            plot(states(i-25:i,:))
+            xticks(1:2:25)
+            xticklabels(i-25:2:i)
+        else
+            plot(states(1:i,:))
+        end
+        subplot(2,1,2)
+        p = plot(genotype.G,'NodeLabel',{});
+        p.NodeCData = states(i,:);
+        p.EdgeCData = genotype.G.Edges.Weight;
+        colormap(bluewhitered)
+        drawnow
+        pause(0.01)
+    end
+end
+
+end

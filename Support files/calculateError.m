@@ -243,19 +243,15 @@ switch(type)
 
     case 'softmax'
         
-        a = exp(systemOutput)/sum(exp(systemOutput));
+     a = [];
+        for i = 1:length(systemOutput)
+            a(i,:) = exp(systemOutput(i,:))/sum(exp(systemOutput(i,:)));
+        end
         [~,predict] = max(a,[],2);
         
-        targ = [];
-        for i = 1:size(systemOutput,1)
-            for j = 1:size(systemOutput,2)
-                if desiredOutput(i,j)==1
-                    targ(i) = j;
-                end
-            end
-        end
-        
-        err = 1- F1Score(targ',predict);
+        [~,targ] = max(desiredOutput,[],2);
+       
+        err = 1- F1Score(targ,predict);
 
     otherwise
         err = compute_NRMSE(systemOutput,desiredOutput);
