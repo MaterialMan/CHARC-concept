@@ -24,12 +24,12 @@ end
 [~, regIndx]= min(sum(regValError,2));
 genotype.trainError = sum(regTrainError(regIndx,:));
 genotype.valError = sum(regValError(regIndx,:));
-genotype.regParam = regParam(regIndx);
+%genotype.regParam = regParam(regIndx);
 
-genotype.outputweights =reshape(regWeights(regIndx,:,:),size(regWeights,2),size(regWeights,3));
+genotype.outputWeights =reshape(regWeights(regIndx,:,:),size(regWeights,2),size(regWeights,3));
 
 %% Evaluate on test data
 testStates = config.assessFcn(genotype,config.testInputSequence,config);
-testSequence = testStates*genotype.outputweights';
+testSequence = testStates*genotype.outputWeights';
 genotype.testError = sum(calculateError(testSequence,config.testOutputSequence,config.nForgetPoints,config.errType));
 end

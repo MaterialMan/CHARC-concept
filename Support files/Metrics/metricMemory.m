@@ -13,7 +13,8 @@ rng(1,'twister');
 %Remove input sequence and reduce forget points
 config.nForgetPoints = 200;
 
-nInternalUnits = sum([genotype.esnMinor.nInternalUnits]);
+nInternalUnits = sum([genotype.nInternalUnits]);
+
 nOutputUnits = nInternalUnits*2;
 nInputUnits = genotype.nInputUnits;
 

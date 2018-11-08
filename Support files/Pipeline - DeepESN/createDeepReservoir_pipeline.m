@@ -3,6 +3,10 @@ function genotype = createDeepReservoir_pipeline(config)
 %% Reservoir Parameters
 for res = 1:config.popSize
     % Assign neuron/model type (options: 'plain' and 'leaky', so far... 'feedback', 'multinetwork', 'LeakyBias')
+    genotype(res).trainError = 1;
+    genotype(res).valError = 1;
+    genotype(res).testError = 1;
+    
     genotype(res).inputShift = 1;
     
     if config.startFull
@@ -56,9 +60,15 @@ for res = 1:config.popSize
     end
     
     %inputweights
-    genotype(res).esnMinor(1).inputWeights = (2.0 * rand(genotype(res).esnMinor(1).nInternalUnits, genotype(res).nInputUnits+1)- 1.0);%*esn.inputScaling;
-    %genotype.esnMinor(i).inputWeights = 2*sprand(genotype.esnMinor(i).nInternalUnits, genotype(res).nInputUnits+1, 0.8)-1; %1/genotype.esnMinor(i).nInternalUnits
-    
+    if config.sparseInputWeights
+        inputWeights = sprand(genotype(res).esnMinor(i).nInternalUnits,  genotype(res).nInputUnits+1, 0.1); 
+            inputWeights(inputWeights ~= 0) = ...
+                2*inputWeights(inputWeights ~= 0)  - 1;
+            genotype(res).esnMinor(i).inputWeights = inputWeights;
+    else
+        genotype(res).esnMinor(i).inputWeights = 2*rand(genotype(res).esnMinor(i).nInternalUnits,  genotype(res).nInputUnits+1)-1; %1/genotype.esnMinor(res,i).nInternalUnits
+    end
+     
     for i = 2: genotype(res).nInternalUnits
         genotype(res).InnerConnectivity =10/genotype(res).esnMinor(i).nInternalUnits;% 0.01; %min([10/genotype.esnMinor(i).nInternalUnits 1]);%min([1/genotype(res).nInternalUnits 1]);%rand;
         inputWeights = sprand(genotype(res).esnMinor(i).nInternalUnits, genotype(res).esnMinor(i-1).nInternalUnits+1, genotype(res).InnerConnectivity);
@@ -85,5 +95,5 @@ for res = 1:config.popSize
             end
         end
     end
-    
+    genotype(res).outputWeights = [];
 end

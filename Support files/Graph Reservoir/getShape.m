@@ -26,7 +26,7 @@ switch(config.substrate)
         config.N = size(config.G.Nodes,1);
         
     case 'Lattice'
-        config.G = createLattice(config.NGrid,config.latticeType,config.self_loop);
+        config.G = createLattice(config.NGrid,config.latticeType,config.self_loop,config.num_ensemble);
         config.N = size(config.G.Nodes,1);
         
     otherwise

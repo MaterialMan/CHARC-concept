@@ -3,7 +3,12 @@ function genotype = createGraphReservoir(config)
 genotype = [];
 for i = 1:config.popSize
     
+    genotype(i).trainError = 1;
+    genotype(i).valError = 1;
+    genotype(i).testError = 1;
+    
     genotype(i).inputShift = 1;
+    
     if isempty(config.trainInputSequence)
         genotype(i).nInputUnits = 1;
         genotype(i).nOutputUnits = 1;
@@ -16,7 +21,6 @@ for i = 1:config.popSize
         config.task_num_outputs =size(config.trainOutputSequence,2);
     end
     genotype(i).nInternalUnits = config.N;
-    genotype(i).esnMinor.nInternalUnits = genotype(i).nInternalUnits;
     
     genotype(i).w = zeros(config.N); %needs to be sparse
     if config.directedGraph
@@ -40,15 +44,29 @@ for i = 1:config.popSize
         end
     end
     genotype(i).w = sparse(genotype(i).w);
-    genotype(i).w_in = 2*rand(config.N,config.task_num_inputs)-1;
+    
+    %inputweights
+    if config.sparseInputWeights
+        inputWeights = sprand(config.N,config.task_num_inputs, 0.1); %1/genotype.esnMinor(res,i).nInternalUnits
+        inputWeights(inputWeights ~= 0) = ...
+                2*inputWeights(inputWeights ~= 0)  - 1;
+        genotype(i).w_in = inputWeights;
+    else
+        genotype(i).w_in = 2*rand(config.N,config.task_num_inputs)-1; %1/genotype.esnMinor(res,i).nInternalUnits
+    end
+    
     genotype(i).w_out = zeros(config.N,config.task_num_outputs);
     genotype(i).input_loc = zeros(config.N,1);
     genotype(i).input_loc(randperm(config.N,randi([1 round(config.N)]))) = 1;
     genotype(i).totalInputs = sum(genotype(i).input_loc);
-    genotype(i).outputweights = [];
-    genotype(i).regParam = 10e-7;
-    genotype(i).trainError = 1;
-    genotype(i).valError = 1;
-    genotype(i).testError = 1;
+    genotype(i).outputWeights = [];
+    %genotype(i).regParam = 10e-7;
+    
+    if config.globalParams
+        genotype(i).Wscaling = 2*rand;                          %alters network dynamics and memory, SR < 1 in almost all cases
+        genotype(i).inputScaling = 2*rand-1;                    %increases nonlinearity
+        genotype(i).inputShift = 1;                             %adds bias/value shift to input signal
+        genotype(i).leakRate = rand;
+    end
 end
 end

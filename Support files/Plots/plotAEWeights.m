@@ -6,7 +6,12 @@ sample.VisualizationDimensions(2)= 28;
 sample.visualizationDimensions(3)= 2;
 
 set(0,'currentFigure',figure1)
-sample.EncoderWeights = full(genotype.w_in)'; % N by U
+switch(config.resType)
+    case 'Graph'
+        sample.EncoderWeights = full(genotype.w_in.*genotype.inputScaling)'; % N by U
+    otherwise
+        sample.EncoderWeights = full(genotype.esnMinor.inputWeights(:,2:end).*genotype.esnMinor.inputScaling)'; % N by U
+end
 plotWeights(sample);
 
 [~,~,outputSequence] = testReservoir(genotype,config);

@@ -5,6 +5,10 @@ function genotype = createRoR(config)
 for res = 1:config.popSize
     % Assign neuron/model type (options: 'plain' and 'leaky', so far... 'feedback', 'multinetwork', 'LeakyBias')
     %esnMajor(res).type = ''; %blank is standard sigmoid, subSample is only use a number of neuron states
+    genotype(res).trainError = 1;
+    genotype(res).valError = 1;
+    genotype(res).testError = 1;
+    
     genotype(res).inputShift = 1;
     
     if config.startFull
@@ -38,11 +42,17 @@ for res = 1:config.popSize
         genotype(res).esnMinor(i).inputShift = 1; %adds bias/value shift to input signal
         genotype(res).esnMinor(i).leakRate = rand;
         
-        %weights
-        genotype(res).esnMinor(i).inputWeights = 2*rand(genotype(res).esnMinor(i).nInternalUnits, genotype(res).nInputUnits+1)-1; %1/esnMinor(res,i).nInternalUnits
+       %inputweights
+        if config.sparseInputWeights
+            inputWeights = sprand(genotype(res).esnMinor(i).nInternalUnits,  genotype(res).nInputUnits+1, 0.1); 
+            inputWeights(inputWeights ~= 0) = ...
+                2*inputWeights(inputWeights ~= 0)  - 1;
+            genotype(res).esnMinor(i).inputWeights = inputWeights;
+        else
+            genotype(res).esnMinor(i).inputWeights = 2*rand(genotype(res).esnMinor(i).nInternalUnits,  genotype(res).nInputUnits+1)-1; 
+        end
         
-        %(2.0 * rand(esnMinor(res,i).nInternalUnits, esnMajor(res).nInputUnits+1)- 1.0);%*esn.inputScaling;
-        %initialise new reservoir - rand for random initialised, but set if
+         %initialise new reservoir - rand for random initialised, but set if
         %want to start with a good basis
         if config.rand_connect
             genotype(res).esnMinor(i).connectivity = max([10/genotype(res).esnMinor(i).nInternalUnits rand]);%(10/esnMinor(res,i).nInternalUnits);
@@ -88,4 +98,5 @@ for res = 1:config.popSize
         end
     end
     
+    genotype(res).outputWeights = [];
 end

@@ -3,6 +3,10 @@ function genotype =createDeepReservoir_ensemble(config)
 %% Reservoir Parameters
 for res = 1:config.popSize
     % Assign neuron/model type (options: 'plain' and 'leaky', so far... 'feedback', 'multinetwork', 'LeakyBias')
+    genotype(res).trainError = 1;
+    genotype(res).valError = 1;
+    genotype(res).testError = 1;
+    
     genotype(res).inputShift = 1;
     
     if config.startFull
@@ -27,27 +31,33 @@ for res = 1:config.popSize
     for i = 1:  genotype(res).nInternalUnits
         
         %define num of units
-        genotype.esnMinor(i).nInternalUnits = randi([config.minMinorUnits config.maxMinorUnits]);
+        genotype(res).esnMinor(i).nInternalUnits = randi([config.minMinorUnits config.maxMinorUnits]);
         %store(i) = genotype.esnMinor(i).nInternalUnits;
         
         % Scaling
-        genotype.esnMinor(i).spectralRadius = 2*rand; %alters network dynamics and memory, SR < 1 in almost all cases
-        genotype.esnMinor(i).inputScaling = 2*rand-1; %increases nonlinearity
-        genotype.esnMinor(i).inputShift = 1; %adds bias/value shift to input signal
-        genotype.esnMinor(i).leakRate = rand;
+        genotype(res).esnMinor(i).spectralRadius = 2*rand; %alters network dynamics and memory, SR < 1 in almost all cases
+        genotype(res).esnMinor(i).inputScaling = 2*rand-1; %increases nonlinearity
+        genotype(res).esnMinor(i).inputShift = 1; %adds bias/value shift to input signal
+        genotype(res).esnMinor(i).leakRate = rand;
         
-        %weights
-        %genotype.esnMinor(res,i).inputWeights = (2.0 * rand(genotype.esnMinor(res,i).nInternalUnits,  genotype(res).nInputUnits+1)- 1.0);%*esn.inputScaling;
-        genotype.esnMinor(i).inputWeights = 2*sprand(genotype.esnMinor(res,i).nInternalUnits,  genotype(res).nInputUnits+1, 0.8)-1; %1/genotype.esnMinor(res,i).nInternalUnits
+        %inputweights
+        if config.sparseInputWeights
+            inputWeights = sprand(genotype(res).esnMinor(i).nInternalUnits,  genotype(res).nInputUnits+1, 0.1);
+            inputWeights(inputWeights ~= 0) = ...
+                2*inputWeights(inputWeights ~= 0)  - 1;
+            genotype(res).esnMinor(i).inputWeights = inputWeights;
+        else
+            genotype(res).esnMinor(i).inputWeights = 2*rand(genotype(res).esnMinor(i).nInternalUnits,  genotype(res).nInputUnits+1)-1; %1/genotype.esnMinor(res,i).nInternalUnits
+        end
         
         %initialise new reservoir
         %genotype.esnMinor(res,i).connectRatio = round(rand*10)*10;
-        genotype.esnMinor(i).connectivity = 10/genotype.esnMinor(res,i).nInternalUnits; %max([10/genotype.esnMinor(res,i).nInternalUnits rand]);%min([10/genotype.esnMinor(res,i).nInternalUnits 1]);
-        genotype.esnMinor(i).internalWeights_UnitSR = generate_internal_weights(genotype.esnMinor(i).nInternalUnits, ...
-            genotype.esnMinor(i).connectivity);
+        genotype(res).esnMinor(i).connectivity = 10/genotype(res).esnMinor(i).nInternalUnits; %max([10/genotype.esnMinor(res,i).nInternalUnits rand]);%min([10/genotype.esnMinor(res,i).nInternalUnits 1]);
+        genotype(res).esnMinor(i).internalWeights_UnitSR = generate_internal_weights(genotype.esnMinor(i).nInternalUnits, ...
+            genotype(res).esnMinor(i).connectivity);
         %genotype.esnMinor(res,i).rho = genotype.esnMinor(i).internalWeights_UnitSR;%/max(abs(eigs(genotype.esnMinor(res,i).internalWeights_UnitSR)));
-        genotype.esnMinor(i).internalWeights = genotype.esnMinor(i).spectralRadius * genotype.esnMinor(i).internalWeights_UnitSR;
-        genotype.esnMinor(i).outputWeights = zeros( genotype(res).nOutputUnits, genotype.esnMinor(i).nInternalUnits +  genotype(res).nInputUnits);
+        genotype(res).esnMinor(i).internalWeights = genotype(res).esnMinor(i).spectralRadius * genotype(res).esnMinor(i).internalWeights_UnitSR;
+        genotype(res).esnMinor(i).outputWeights = zeros( genotype(res).nOutputUnits, genotype(res).esnMinor(i).nInternalUnits +  genotype(res).nInputUnits);
         
         if config.multiActiv
             activPositions = randi(length(config.ActivList),1,genotype(res).esnMinor(i).nInternalUnits);
@@ -69,7 +79,7 @@ for res = 1:config.popSize
             genotype(res).interResScaling{i,j} = val;
             
             if i==j %new
-                genotype(res).connectWeights{i,j} = genotype.esnMinor(i).internalWeights;
+                genotype(res).connectWeights{i,j} = genotype(res).esnMinor(i).internalWeights;
                 genotype(res).interResScaling{i,j} = 1;
             else
                 genotype(res).connectWeights{i,j} =  0;
@@ -77,5 +87,5 @@ for res = 1:config.popSize
             end
         end
     end
-    
+    genotype(res).outputWeights = [];
 end

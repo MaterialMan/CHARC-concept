@@ -38,4 +38,19 @@ end
 
 genotype.totalInputs = sum(genotype.input_loc);
 
+if config.globalParams   
+    if rand < config.mutRate
+        genotype.Wscaling = 2*rand;
+    end
+    if rand < config.mutRate%alters network dynamics and memory, SR < 1 in almost all cases
+        genotype.inputScaling = 2*rand-1;
+    end
+    if rand < config.mutRate%increases nonlinearity
+        genotype.inputShift = 2*rand-1;
+    end
+    if rand < config.mutRate%adds bias/value shift to input signal
+        genotype.leakRate = rand;
+    end
+end
+
 end

@@ -4,14 +4,13 @@
 
 % Author: M. Dale
 % Date: 07/11/18
-
 clear
 rng(1,'twister');
 
 %% Setup
 % type of network to evolve
 config.resType = 'Graph';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 6;                   % num of nodes in subreservoirs
+config.maxMinorUnits = 5;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -26,7 +25,8 @@ config.trainingType = 'Ridge';              %blank is psuedoinverse. Other optio
 config.AddInputStates = 1;                  %add input to states
 config.regParam = 10e-5;                    %training regulariser
 config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]
-config.trainInputSequence=[];
+config.trainInputSequence= [];
+config.sparseInputWeights = 0;              % use sparse inputs
 
 %Graph params
 if strcmp(config.resType,'Graph')
@@ -34,28 +34,29 @@ if strcmp(config.resType,'Graph')
     config.substrate= 'Lattice';            % Define substrate
                                             % Examples: 'Lattice', 'Hypercube', 'Torus','L-shape','Bucky','Barbell'
     config.NGrid = config.maxMinorUnits;    % Number of nodes 
+    config.num_ensemble = 4;                % number of lattices
     
     % substrate params
     config.N_rings = 0;                     % used with Torus
-    config.latticeType = 'fullLattice';        % see creatLattice.m for different types. 
+    config.latticeType = 'ensembleLattice';        % see creatLattice.m for different types. 
                                             % Examples: 'basicLattice','partialLattice','fullLattice','basicCube','partialCube','fullCube',
-    
     % node details and connectivity
-    config.actvFunc = 'sign';                % decide activation fcn of node.
+    config.actvFunc = 'tanh';                % decide activation fcn of node.
     config.plotStates = 0;                  % plot states in real-time.
     config.nearest_neighbour = 0;           % choose radius of nearest neighbour, or set to 0 for direct neighbour.
-    config.directedGraph = 0;               % directed graph (i.e. weight for all directions).
+    config.directedGraph = 1;               % directed graph (i.e. weight for all directions).
     config.self_loop = 0;                   % give node a loop to self.
     config.inputEval = 0;                   % add input directly to node, otherwise node takes inputs value.
     config = getShape(config);              % call function to make graph.
     figure2 = figure;
     config.plot3d = 0;                      % plot graph in 3D.
+    config.globalParams = 1;                % add global scaling parameters and leakrate
 end
 
 %Evolutionary parameters
-config.numTests = 10;                        % num of runs
-config.popSize = 200;                       % large pop better
-config.totalGens = 5000;                    % num of gens
+config.numTests = 1;                        % num of runs
+config.popSize = 50;                       % large pop better
+config.totalGens = 1000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
