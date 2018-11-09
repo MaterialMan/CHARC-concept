@@ -10,9 +10,9 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'RoR_IA';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.resType = 'BZ';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
 config.maxMinorUnits = 10;                   % num of nodes in subreservoirs
-config.maxMajorUnits = 4;                   % num of subreservoirs. Default ESN should be 1.
+config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 
 %% Network details
@@ -27,43 +27,18 @@ config.AddInputStates = 1;                  % add input to states
 config.regParam = 10e-5;                    % training regulariser
 config.sparseInputWeights = 0;              % use sparse inputs
 
-%% Graph params
-if strcmp(config.resType,'Graph')
-    
-    config.substrate= 'Lattice';            % Define substrate
-    % Examples: 'Lattice', 'Hypercube', 'Torus','L-shape','Bucky','Barbell'
-    config.NGrid = config.maxMinorUnits;    % Number of nodes
-    config.num_ensemble = 3;                % number of lattices
-    
-    % substrate params
-    config.N_rings = 0;                     % used with Torus
-    config.latticeType = 'fullCube';        % see creatLattice.m for different types.
-    % Examples: 'basicLattice','partialLattice','fullLattice','basicCube','partialCube','fullCube',
-    
-    % node details and connectivity
-    config.actvFunc = 'tanh';               % decide activation fcn of node.
-    config.plotStates = 0;                  % plot states in real-time.
-    config.nearest_neighbour = 0;           % choose radius of nearest neighbour, or set to 0 for direct neighbour.
-    config.directedGraph = 0;               % directed graph (i.e. weight for all directions).
-    config.self_loop = 0;                   % give node a loop to self.
-    config.inputEval = 0;                   % add input directly to node, otherwise node takes inputs value.
-    config = getShape(config);              % call function to make graph.
-    config.plot3d = 0;                      % plot graph in 3D.
-    config.globalParams = 1;                % add global scaling parameters and leakrate
-end
-
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
-config.popSize = 20;                       % large pop better
-config.totalGens = 1000;                    % num of gens
+config.popSize = 5;                       % large pop better
+config.totalGens = 100;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
-config.evolveOutputWeights = 1;             % evolve rather than train
+config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Task parameters
-config.dataSet = 'poleBalance';                 % Task to evolve for
+config.dataSet = 'NARMA10';                 % Task to evolve for
 [config.trainInputSequence,config.trainOutputSequence,config.valInputSequence,config.valOutputSequence,...
     config.testInputSequence,config.testOutputSequence,config.nForgetPoints,config.errType,config.queueType] = selectDataset(config.dataSet);
 

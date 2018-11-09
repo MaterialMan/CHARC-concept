@@ -37,6 +37,12 @@ switch(config.resType)
         config.assessFcn = @assessGraphReservoir;
         config.mutFcn = @mutateGraph;
         config.recFcn = @recombGraph;
+        
+    case 'BZ'
+        config.createFcn = @createBZReservoir;
+        config.assessFcn = @assessBZReservoir;
+        config.mutFcn = @mutateBZ;
+        config.recFcn = @recombBZ;
 end
 
 config.testFcn = @testReservoir; % default for all
