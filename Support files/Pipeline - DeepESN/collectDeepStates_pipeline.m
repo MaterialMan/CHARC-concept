@@ -31,7 +31,7 @@ function [statesExt] = collectDeepStates_pipeline(genotype,inputSequence,config)
     for i= 1:genotype.nInternalUnits
         statesExt = [statesExt states{i}];
     end
-       
+    
     if config.AddInputStates == 1
         statesExt = [statesExt inputSequence];
     end

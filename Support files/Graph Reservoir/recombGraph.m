@@ -22,8 +22,8 @@ else
     end
 end
 
-Winner= w.w_in;
-Loser = l.w_in;
+Winner= w.w_in(:);
+Loser = l.w_in(:);
 pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
 Loser(pos) = Winner(pos);
 l.w_in = reshape(Loser,size(l.w_in));
@@ -44,6 +44,14 @@ if config.globalParams
     l.inputScaling = temp_loser(2);                    %increases nonlinearity
     l.inputShift = temp_loser(3);                             %adds bias/value shift to input signal
     l.leakRate = temp_loser(4);
+end
+
+if config.evolveOutputWeights
+    Winner= w.outputWeights(:);
+    Loser = l.outputWeights(:);
+    pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
+    Loser(pos) = Winner(pos);
+    l.outputWeights = reshape(Loser,size(l.outputWeights));
 end
 
 end

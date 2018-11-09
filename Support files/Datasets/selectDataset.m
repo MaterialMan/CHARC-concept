@@ -341,6 +341,14 @@ switch inputData
         
         inputSequence= u';
         outputSequence= u';
+        
+    case 'poleBalance'
+        errType = 'empty';
+        queueType = 'empty';
+        train_fraction=0.1;    val_fraction=0.1;    test_fraction=0.1;
+        nForgetPoints = 0;
+        inputSequence= zeros(100,4);
+        outputSequence= zeros(100,1);
 end
 
 %normalise all features

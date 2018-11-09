@@ -55,11 +55,16 @@ for i = 1:config.popSize
         genotype(i).w_in = 2*rand(config.N,config.task_num_inputs)-1; %1/genotype.esnMinor(res,i).nInternalUnits
     end
     
-    genotype(i).w_out = zeros(config.N,config.task_num_outputs);
+    %genotype(i).w_out = zeros(config.N,config.task_num_outputs);
     genotype(i).input_loc = zeros(config.N,1);
     genotype(i).input_loc(randperm(config.N,randi([1 round(config.N)]))) = 1;
     genotype(i).totalInputs = sum(genotype(i).input_loc);
-    genotype(i).outputWeights = [];
+    if config.AddInputStates
+        genotype(i).outputWeights = zeros(config.N+genotype(i).nInputUnits+1,config.task_num_outputs);
+    else
+        genotype(i).outputWeights = zeros(config.N+1,config.task_num_outputs);
+    end
+
     %genotype(i).regParam = 10e-7;
     
     if config.globalParams

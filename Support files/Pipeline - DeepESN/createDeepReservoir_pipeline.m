@@ -1,5 +1,6 @@
 function genotype = createDeepReservoir_pipeline(config)
 
+
 %% Reservoir Parameters
 for res = 1:config.popSize
     % Assign neuron/model type (options: 'plain' and 'leaky', so far... 'feedback', 'multinetwork', 'LeakyBias')
@@ -61,12 +62,12 @@ for res = 1:config.popSize
     
     %inputweights
     if config.sparseInputWeights
-        inputWeights = sprand(genotype(res).esnMinor(i).nInternalUnits,  genotype(res).nInputUnits+1, 0.1); 
+        inputWeights = sprand(genotype(res).esnMinor(1).nInternalUnits,  genotype(res).nInputUnits+1, 0.1); 
             inputWeights(inputWeights ~= 0) = ...
                 2*inputWeights(inputWeights ~= 0)  - 1;
-            genotype(res).esnMinor(i).inputWeights = inputWeights;
+            genotype(res).esnMinor(1).inputWeights = inputWeights;
     else
-        genotype(res).esnMinor(i).inputWeights = 2*rand(genotype(res).esnMinor(i).nInternalUnits,  genotype(res).nInputUnits+1)-1; %1/genotype.esnMinor(res,i).nInternalUnits
+        genotype(res).esnMinor(1).inputWeights = 2*rand(genotype(res).esnMinor(1).nInternalUnits,  genotype(res).nInputUnits+1)-1; %1/genotype.esnMinor(res,i).nInternalUnits
     end
      
     for i = 2: genotype(res).nInternalUnits
@@ -78,6 +79,7 @@ for res = 1:config.popSize
     end
     
     
+    genotype(res).Nunits = 0;
     
     %% connectivity to other reservoirs
     for i = 1:genotype(res).nInternalUnits
@@ -94,6 +96,12 @@ for res = 1:config.popSize
                 genotype(res).connectWeights{i,j} = 0;
             end
         end
+            genotype(res).Nunits = genotype(res).Nunits + genotype(res).esnMinor(i).nInternalUnits; 
     end
-    genotype(res).outputWeights = [];
+    
+    if config.AddInputStates
+        genotype(res).outputWeights = zeros(genotype(res).Nunits+genotype(res).nInputUnits+1,genotype(res).nOutputUnits);
+    else
+        genotype(res).outputWeights = zeros(genotype(res).Nunits+1,genotype(res).nOutputUnits);
+    end
 end

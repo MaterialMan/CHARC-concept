@@ -10,9 +10,9 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'Graph';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 4;                   % num of nodes in subreservoirs
-config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
+config.resType = 'RoR_IA';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 10;                   % num of nodes in subreservoirs
+config.maxMajorUnits = 4;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 
 %% Network details
@@ -37,7 +37,7 @@ if strcmp(config.resType,'Graph')
     
     % substrate params
     config.N_rings = 0;                     % used with Torus
-    config.latticeType = 'ensembleShape';        % see creatLattice.m for different types.
+    config.latticeType = 'fullCube';        % see creatLattice.m for different types.
     % Examples: 'basicLattice','partialLattice','fullLattice','basicCube','partialCube','fullCube',
     
     % node details and connectivity
@@ -60,28 +60,21 @@ config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
+config.evolveOutputWeights = 1;             % evolve rather than train
 
 %% Task parameters
-config.dataSet = 'NARMA10';                 % Task to evolve for
+config.dataSet = 'poleBalance';                 % Task to evolve for
 [config.trainInputSequence,config.trainOutputSequence,config.valInputSequence,config.valOutputSequence,...
     config.testInputSequence,config.testOutputSequence,config.nForgetPoints,config.errType,config.queueType] = selectDataset(config.dataSet);
 
-config.task_num_inputs = size(config.trainInputSequence,2);
-config.task_num_outputs = size(config.trainOutputSequence,2);
+[config,figure3,figure4] = getDataSetInfo(config);
 
-if strcmp(config.dataSet,'autoencoder')
-    config.leakOn = 0;                          % add leak states
-    config.AddInputStates = 0; 
-    figure3= figure; figure4 = figure;
-    config.sparseInputWeights = 1;
-end
-                
 %% general params
 config.genPrint = 10;                       % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 figure1 =figure;
 config.saveGen = 25;                        % save at gen = saveGen
-config.parallel = 1;                        % use parallel toolbox
+config.parallel = 0;                        % use parallel toolbox
 config.multiOffspring = 0;                  % multiple tournament selection and offspring in one cycle
 config.numSyncOffspring = config.deme;      % length of cycle/synchronisation step
 config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]
@@ -102,12 +95,12 @@ for test = 1:config.numTests
     %Assess Genotype
     if config.parallel
         parfor popEval = 1:config.popSize
-            genotype(popEval) = testReservoir(genotype(popEval),config);
+            genotype(popEval) = config.testFcn(genotype(popEval),config);
             fprintf('\n i = %d, error = %.4f\n',popEval,genotype(popEval).testError);
         end
     else
         for popEval = 1:config.popSize
-            genotype(popEval) = testReservoir(genotype(popEval),config);
+            genotype(popEval) = config.testFcn(genotype(popEval),config);
             fprintf('\n i = %d, error = %.4f\n',popEval,genotype(popEval).testError);
         end
     end
@@ -156,7 +149,7 @@ for test = 1:config.numTests
                 parLoser{p} = config.mutFcn(parLoser{p},config);
                 
                 %% Evaluate and update fitness
-                parLoser{p} = testReservoir(parLoser{p},config);
+                parLoser{p} = config.testFcn(parLoser{p},config);
             end
             
             [U,ia,ic]  = unique(l);                                  % find unique losers
@@ -207,7 +200,7 @@ for test = 1:config.numTests
             genotype(loser) = config.mutFcn(genotype(loser),config);
             
             %% Evaluate and update fitness
-            genotype(loser) = testReservoir(genotype(loser),config);
+            genotype(loser) = config.testFcn(genotype(loser),config);
             
             %update errors
             storeError(test,gen,:) =  storeError(test,gen-1,:);

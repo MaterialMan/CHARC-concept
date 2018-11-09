@@ -33,4 +33,11 @@ for i = 1:size(genotype.nInternalUnits,2)
     end
 end
 
+if config.evolveOutputWeights
+    outputWeights = genotype.outputWeights(:);
+    pos =  randi([1 length(outputWeights)],round(config.mutRate*length(outputWeights)),1);
+    outputWeights(pos) = 2*rand(length(pos),1)-1;
+    genotype.outputWeights = reshape(outputWeights,size(genotype.outputWeights));
+end
+
 end

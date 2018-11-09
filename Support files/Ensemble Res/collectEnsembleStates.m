@@ -26,15 +26,14 @@ if config.leakOn
     end
 end
 
-statesExt = ones(size(states{1},1),1);
-for i= 1:genotype.nInternalUnits
-    statesExt = [statesExt states{i}];
-end
+statesExt = ones(size(states{1},1),1)*genotype.inputShift;
+    for i= 1:genotype.nInternalUnits
+        statesExt = [statesExt states{i}];
+    end
+       
+    if config.AddInputStates == 1
+        statesExt = [statesExt inputSequence];
+    end
 
-if config.AddInputStates == 1
-    statesExt = [statesExt inputSequence];
-end
-
-statesExt = [ones(size(statesExt,1),1)*genotype.inputShift statesExt]; % add bias
-
+    
 statesExt = statesExt(config.nForgetPoints+1:end,:);

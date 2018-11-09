@@ -5,11 +5,11 @@ if config.globalParams
     x = x1;
     
     if config.inputEval
-        for t= 2:length(inputSequence)
+        for t= 2:size(inputSequence,1)
             x(t,:) = feval(config.actvFunc,genotype.w_in*genotype.inputScaling*inputSequence(t,:) + (genotype.w*genotype.Wscaling*x(t-1,:)'));
         end
     else
-        for t= 2:length(inputSequence)
+        for t= 2:size(inputSequence,1)
             x(t,:) = feval(config.actvFunc,(genotype.w*genotype.Wscaling*x(t-1,:)').*~genotype.input_loc);
             x(t,:) = x(t,:) + x1(t,:);
         end
@@ -18,7 +18,7 @@ if config.globalParams
     if config.leakOn
         for i= 1:genotype.nInternalUnits
             leakStates = zeros(size(x));
-            for n = 2:length(inputSequence(:,1))
+            for n = 2:size(inputSequence,1)
                 leakStates(n,:) = (1-genotype.leakRate)*leakStates(n-1,:)+ genotype.leakRate*x(n,:);
             end
             x = leakStates;
@@ -26,9 +26,9 @@ if config.globalParams
     end
 
     if config.AddInputStates
-        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) inputSequence(config.nForgetPoints+1:end,:) x(config.nForgetPoints+1:end,:)];
+        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:),1)) inputSequence(config.nForgetPoints+1:end,:) x(config.nForgetPoints+1:end,:)];
     else
-        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) x(config.nForgetPoints+1:end,:)];
+        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:),1)) x(config.nForgetPoints+1:end,:)];
     end
     
 else % no global params
@@ -36,20 +36,20 @@ else % no global params
     x = x1;
     
     if config.inputEval
-        for t= 2:length(inputSequence)
+        for t= 2:size(inputSequence,1)
             x(t,:) = feval(config.actvFunc,genotype.w_in*inputSequence(t,:) + (genotype.w*x(t-1,:)'));
         end
     else
-        for t= 2:length(inputSequence)
+        for t= 2:size(inputSequence,1)
             x(t,:) = feval(config.actvFunc,(genotype.w*x(t-1,:)').*~genotype.input_loc);
             x(t,:) = x(t,:) + x1(t,:);
         end
     end
     
     if config.AddInputStates
-        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) inputSequence(config.nForgetPoints+1:end,:) x(config.nForgetPoints+1:end,:)];
+        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:),1)) inputSequence(config.nForgetPoints+1:end,:) x(config.nForgetPoints+1:end,:)];
     else
-        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) x(config.nForgetPoints+1:end,:)];
+        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:),1)) x(config.nForgetPoints+1:end,:)];
     end
     
 end

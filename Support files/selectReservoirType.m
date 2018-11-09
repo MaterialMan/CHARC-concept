@@ -38,3 +38,5 @@ switch(config.resType)
         config.mutFcn = @mutateGraph;
         config.recFcn = @recombGraph;
 end
+
+config.testFcn = @testReservoir; % default for all
