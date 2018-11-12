@@ -30,3 +30,11 @@ Loser = l.input_loc;
 pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
 Loser(pos) = Winner(pos);
 l.input_loc = Loser;
+
+if config.evolvedOutputStates
+    Winner= w.state_loc;
+    Loser = l.state_loc;
+    pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
+    Loser(pos) = Winner(pos);
+    l.state_loc = Loser;
+end

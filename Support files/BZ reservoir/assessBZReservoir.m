@@ -29,6 +29,11 @@ idx=reshape(idx,[yres xres]+2); % returns an yres by xres matrix whose
 
 time_span = size(inputSequence,1);
 
+loc = reshape(logical(genotype.input_loc),genotype.size,genotype.size,3);
+%w_in = reshape(genotype.w_in,genotype.size,genotype.size,3);
+% loc_wina = genotype.w_in(logical(genotype.input_loc(1:genotype.size.^2)));
+% loc_winb = genotype.w_in(logical(genotype.input_loc((genotype.size.^2)+1:(genotype.size.^2)*2)));
+% loc_winc = genotype.w_in(logical(genotype.input_loc(((genotype.size.^2)*2)+1:(genotype.size.^2)*3)));
 
 for k=1:time_span
 
@@ -36,6 +41,7 @@ for k=1:time_span
     c_b = zeros(xres,yres); 
     c_c = zeros(xres,yres); 
 
+    %vectorise
     for m=1:xres 
         for n=1:yres
         
@@ -48,9 +54,27 @@ for k=1:time_span
                 idx_temp=idx_temp+(xres+0)*(yres+0); 
             end 
 
-            c_a(m,n) =c_a(m,n)+ sum(a(idx_temp)); 
-            c_b(m,n) =c_b(m,n)+ sum(b(idx_temp)); 
-            c_c(m,n) =c_c(m,n)+ sum(c(idx_temp)); 
+%             if loc(m,n,1)
+%                 c_a(m,n) = abs(w_in(m,n,1)*inputSequence(k,:))*9;
+%             else
+%                 c_a(m,n) =c_a(m,n) + sum(a(idx_temp)); 
+%             end
+%             
+%             if loc(m,n,2)
+%                 c_b(m,n) = abs(w_in(m,n,2)*inputSequence(k,:))*9;
+%             else
+%                 c_b(m,n) =c_b(m,n) + sum(b(idx_temp));
+%             end
+%             
+%             if loc(m,n,3)
+%                 c_c(m,n) = abs(w_in(m,n,3)*inputSequence(k,:))*9;
+%             else
+%                 c_c(m,n) =c_c(m,n) + sum(c(idx_temp)); 
+%             end
+            
+            c_a(m,n) =c_a(m,n) + sum(a(idx_temp)); 
+            c_b(m,n) =c_b(m,n) + sum(b(idx_temp)); 
+            c_c(m,n) =c_c(m,n) + sum(c(idx_temp)); 
 
         end 
     end 
@@ -64,11 +88,10 @@ for k=1:time_span
     c_b =c_b/ 9.0; 
     c_c =c_c/ 9.0; 
 
-    loc = reshape(logical(genotype.input_loc),genotype.size,genotype.size,3);
-
-    c_a(loc(:,:,1)) = genotype.w_in(logical(genotype.input_loc(1:genotype.size.^2)))*inputSequence(k,:);
-    c_b(loc(:,:,2)) = genotype.w_in(logical(genotype.input_loc((genotype.size.^2)+1:(genotype.size.^2)*2)))*inputSequence(k,:);
-    c_c(loc(:,:,3)) = genotype.w_in(logical(genotype.input_loc(((genotype.size.^2)*2)+1:(genotype.size.^2)*3)))*inputSequence(k,:);
+    %not sure in right place
+    c_a(loc(:,:,1)) = genotype.w_in(logical(genotype.input_loc(1:genotype.size.^2)),:)*inputSequence(k,:)';
+    c_b(loc(:,:,2)) = genotype.w_in(logical(genotype.input_loc((genotype.size.^2)+1:(genotype.size.^2)*2)),:)*inputSequence(k,:)';
+    c_c(loc(:,:,3)) = genotype.w_in(logical(genotype.input_loc(((genotype.size.^2)*2)+1:(genotype.size.^2)*3)),:)*inputSequence(k,:)';
     
     a(:,:,q) = double(uint8(255*(c_a + c_a .* (c_b - c_c))))/255; 
     b(:,:,q) = double(uint8(255*(c_b + c_b .* (c_c - c_a))))/255; 
@@ -112,7 +135,11 @@ for k=1:time_span
     
 end
 
-states= states(config.nForgetPoints+1:end,:);
+ if config.evolvedOutputStates 
+     states= states(config.nForgetPoints+1:end,logical(genotype.state_loc));
+ else
+    states= states(config.nForgetPoints+1:end,:);
+ end
 
 end
 

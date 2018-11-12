@@ -9,8 +9,8 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'Graph';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 5;                   % num of nodes in subreservoirs
+config.resType = 'BZ';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 20;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -26,41 +26,21 @@ config.AddInputStates = 1;                  %add input to states
 config.regParam = 10e-5;                    %training regulariser
 config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]
 config.trainInputSequence= [];
+config.trainOutputSequence =[];
+config.dataSet =[];
 config.sparseInputWeights = 0;              % use sparse inputs
 
-%Graph params
-if strcmp(config.resType,'Graph')
-    
-    config.substrate= 'Lattice';            % Define substrate
-                                            % Examples: 'Lattice', 'Hypercube', 'Torus','L-shape','Bucky','Barbell'
-    config.NGrid = config.maxMinorUnits;    % Number of nodes 
-    config.num_ensemble = 4;                % number of lattices
-    
-    % substrate params
-    config.N_rings = 0;                     % used with Torus
-    config.latticeType = 'ensembleLattice';        % see creatLattice.m for different types. 
-                                            % Examples: 'basicLattice','partialLattice','fullLattice','basicCube','partialCube','fullCube',
-    % node details and connectivity
-    config.actvFunc = 'tanh';                % decide activation fcn of node.
-    config.plotStates = 0;                  % plot states in real-time.
-    config.nearest_neighbour = 0;           % choose radius of nearest neighbour, or set to 0 for direct neighbour.
-    config.directedGraph = 1;               % directed graph (i.e. weight for all directions).
-    config.self_loop = 0;                   % give node a loop to self.
-    config.inputEval = 0;                   % add input directly to node, otherwise node takes inputs value.
-    config = getShape(config);              % call function to make graph.
-    figure2 = figure;
-    config.plot3d = 0;                      % plot graph in 3D.
-    config.globalParams = 1;                % add global scaling parameters and leakrate
-end
+[config,figure3,figure4] = getDataSetInfo(config);
 
 %Evolutionary parameters
 config.numTests = 1;                        % num of runs
-config.popSize = 50;                       % large pop better
+config.popSize = 100;                       % large pop better
 config.totalGens = 1000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
+config.evolveOutputWeights = 0;             % evolve rather than train
 
 % NS parameters
 config.k_neighbours = 10;                   % how many neighbours to check
@@ -96,6 +76,7 @@ for tests = 1:config.numTests
     parfor popEval = 1:config.popSize
         [~, kernel_rank(popEval), gen_rank(popEval)] = metricKQGRLE(genotype(popEval),config);
         MC(popEval) = metricMemory(genotype(popEval),config);
+         fprintf('\n indv: %d  ',popEval);
     end
     
     %% Create NS archive from inital pop

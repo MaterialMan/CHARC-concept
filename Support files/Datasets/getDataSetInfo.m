@@ -28,6 +28,9 @@ if strcmp(config.resType,'BZ')
     config.fft = 1;
     config.BZfigure1 = figure;
     config.BZfigure2 = figure;
+    config.evolvedOutputStates =0;
+    config.restricedWeight =1;
+    
 end
 
 %% Graph params

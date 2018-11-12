@@ -30,6 +30,7 @@ for res = 1:config.popSize
     %genotype(res).num_dots = randi([1 20]);
     genotype(res).time_interval = 1;
     genotype(res).dot_perc = 0.01;%rand;
+    genotype(res).nInternalUnits = config.maxMinorUnits.^2;
     
     genotype(res).input_loc = zeros((genotype(res).size.^2)*3,1);
     genotype(res).input_loc(randperm(size(genotype(res).input_loc,1),round(randi([1 round(size(genotype(res).input_loc,1))])*genotype(res).dot_perc))) = 1;
@@ -42,9 +43,22 @@ for res = 1:config.popSize
             2*inputWeights(inputWeights ~= 0)  - 1;
         genotype(res).w_in = inputWeights;
     else
-        genotype(res).w_in = 2*rand((genotype(res).size.^2)*3,config.task_num_inputs)-1; %1/genotype.esnMinor(res,i).nInternalUnits
+        if config.restricedWeight
+        for r = 1:config.task_num_inputs
+            genotype(res).w_in(:,r) = datasample(0.2:0.2:1,(genotype(res).size.^2)*3);%2*rand((genotype(res).size.^2)*3,config.task_num_inputs)-1; %1/genotype.esnMinor(res,i).nInternalUnits
+        end
+        else
+            genotype(res).w_in = 2*rand((genotype(res).size.^2)*3,config.task_num_inputs)-1; %1/genotype.esnMinor(res,i).nInternalUnits
+        end
     end
     
     genotype(res).outputWeights = zeros(genotype(res).size*genotype(res).size*3,1);
+    
+    if config.evolvedOutputStates
+        genotype(res).state_perc = 0.1;
+        genotype(res).state_loc = zeros((genotype(res).size.^2)*3,1);
+        genotype(res).state_loc(randperm(size(genotype(res).state_loc,1),round(randi([1 round(size(genotype(res).state_loc,1))])*genotype(res).state_perc))) = 1;
+        genotype(res).totalStates = sum(genotype(res).state_loc);
+    end
     
 end

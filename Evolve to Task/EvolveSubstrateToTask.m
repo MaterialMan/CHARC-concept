@@ -29,8 +29,8 @@ config.sparseInputWeights = 0;              % use sparse inputs
 
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
-config.popSize = 5;                       % large pop better
-config.totalGens = 100;                    % num of gens
+config.popSize = 50;                       % large pop better
+config.totalGens = 1000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
@@ -38,7 +38,7 @@ config.recRate = 0.5;                       % recombination rate
 config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Task parameters
-config.dataSet = 'NARMA10';                 % Task to evolve for
+config.dataSet = 'SignalClassification';                 % Task to evolve for
 [config.trainInputSequence,config.trainOutputSequence,config.valInputSequence,config.valOutputSequence,...
     config.testInputSequence,config.testOutputSequence,config.nForgetPoints,config.errType,config.queueType] = selectDataset(config.dataSet);
 
@@ -48,8 +48,8 @@ config.dataSet = 'NARMA10';                 % Task to evolve for
 config.genPrint = 10;                       % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 figure1 =figure;
-config.saveGen = 25;                        % save at gen = saveGen
-config.parallel = 0;                        % use parallel toolbox
+config.saveGen = 1000;                        % save at gen = saveGen
+config.parallel = 1;                        % use parallel toolbox
 config.multiOffspring = 0;                  % multiple tournament selection and offspring in one cycle
 config.numSyncOffspring = config.deme;      % length of cycle/synchronisation step
 config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]
@@ -128,7 +128,7 @@ for test = 1:config.numTests
             end
             
             [U,ia,ic]  = unique(l);                                  % find unique losers
-            genotype(l(ia)) = [parLoser{ia}];                        % replace losers (does not replace replicates) 
+            genotype(l(ia)) = [parLoser{ia}];                        % replace losers (does not replace replicates)
             
             %update errors
             storeError(test,gen,:) =  storeError(test,gen-1,:);
@@ -190,6 +190,9 @@ for test = 1:config.numTests
                     plotGridNeuron(figure1,genotype,storeError,test,best_indv,loser,config)
                 end
                 
+                if strcmp(config.resType,'BZ')
+                    plotBZ(config.BZfigure1,genotype,best_indv,loser,config)
+                end
                 if strcmp(config.dataSet,'autoencoder')
                     plotAEWeights(figure3,figure4,config.testInputSequence,genotype(best_indv),config)
                 end
@@ -259,5 +262,62 @@ colormap(bluewhitered)
 xlabel('Loser weights')
 
 pause(0.01)
+drawnow
+end
+
+function plotBZ(figure1,genotype,best_indv,loser,config)
+set(0,'currentFigure',figure1)
+if config.evolvedOutputStates
+  
+    subplot(2,3,1)
+    imagesc(reshape(genotype(best_indv).input_loc(1:genotype(best_indv).size.^2),genotype(best_indv).size,genotype(best_indv).size))
+    title('Input Location')
+    
+    subplot(2,3,2)
+    imagesc(reshape(genotype(best_indv).input_loc((genotype(best_indv).size.^2)+1:(genotype(best_indv).size.^2)*2),genotype(best_indv).size,genotype(best_indv).size))
+    title('Input Location')
+    
+     subplot(2,3,3)
+    imagesc(reshape(genotype(best_indv).input_loc(((genotype(best_indv).size.^2)*2)+1:(genotype(best_indv).size.^2)*3),genotype(best_indv).size,genotype(best_indv).size))
+     title('Input Location')
+    
+    subplot(2,3,4)
+    imagesc(reshape(genotype(best_indv).state_loc(1:genotype(best_indv).size.^2),genotype(best_indv).size,genotype(best_indv).size))
+    title('Output Location')
+    
+    subplot(2,3,5)
+    imagesc(reshape(genotype(best_indv).state_loc((genotype(best_indv).size.^2)+1:(genotype(best_indv).size.^2)*2),genotype(best_indv).size,genotype(best_indv).size))
+    title('Output Location')
+    
+     subplot(2,3,6)
+    imagesc(reshape(genotype(best_indv).state_loc(((genotype(best_indv).size.^2)*2)+1:(genotype(best_indv).size.^2)*3),genotype(best_indv).size,genotype(best_indv).size))
+     title('Output Location')
+else
+    set(0,'currentFigure',figure1)
+    subplot(2,3,1)
+    imagesc(reshape(genotype(best_indv).input_loc(1:genotype(best_indv).size.^2),genotype(best_indv).size,genotype(best_indv).size))
+    title('Input Location (Best)')
+    
+    subplot(2,3,2)
+    imagesc(reshape(genotype(best_indv).input_loc((genotype(best_indv).size.^2)+1:(genotype(best_indv).size.^2)*2),genotype(best_indv).size,genotype(best_indv).size))
+    title('Input Location (Best)')
+    
+     subplot(2,3,3)
+    imagesc(reshape(genotype(best_indv).input_loc(((genotype(best_indv).size.^2)*2)+1:(genotype(best_indv).size.^2)*3),genotype(best_indv).size,genotype(best_indv).size))
+     title('Input Location (Best)')
+     
+     subplot(2,3,4)
+    imagesc(reshape(genotype(loser).input_loc(1:genotype(loser).size.^2),genotype(loser).size,genotype(loser).size))
+    title('Input Location (loser)')
+    
+    subplot(2,3,5)
+    imagesc(reshape(genotype(loser).input_loc((genotype(loser).size.^2)+1:(genotype(loser).size.^2)*2),genotype(loser).size,genotype(loser).size))
+    title('Input Location (loser)')
+    
+     subplot(2,3,6)
+    imagesc(reshape(genotype(loser).input_loc(((genotype(loser).size.^2)*2)+1:(genotype(loser).size.^2)*3),genotype(loser).size,genotype(loser).size))
+     title('Input Location (loser)')
+    
+end
 drawnow
 end

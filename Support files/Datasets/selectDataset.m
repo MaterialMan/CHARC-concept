@@ -10,7 +10,7 @@ scurr = rng;
 temp_seed = scurr.Seed;
 
 if nargin < 2
-    hardware = 0;
+    hardware = 1;
 end
 
 rng(1,'twister');
