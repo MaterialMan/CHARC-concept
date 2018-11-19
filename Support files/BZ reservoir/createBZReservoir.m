@@ -30,7 +30,7 @@ for res = 1:config.popSize
     %genotype(res).num_dots = randi([1 20]);
     genotype(res).time_interval = 1;
     genotype(res).dot_perc = 0.01;%rand;
-    genotype(res).nInternalUnits = config.maxMinorUnits.^2;
+    genotype(res).nTotalUnits = config.maxMinorUnits.^2;
     
     genotype(res).input_loc = zeros((genotype(res).size.^2)*3,1);
     genotype(res).input_loc(randperm(size(genotype(res).input_loc,1),round(randi([1 round(size(genotype(res).input_loc,1))])*genotype(res).dot_perc))) = 1;

@@ -35,6 +35,9 @@ else
     %genotype.regParam = regParam(regIndx);
     
     genotype.outputWeights =reshape(regWeights(regIndx,:,:),size(regWeights,2),size(regWeights,3));
+
+    %remove NaNs
+   genotype.outputWeights(isnan(genotype.outputWeights)) = 0;
 end
 
 %% Evaluate on test data

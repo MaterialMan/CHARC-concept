@@ -16,7 +16,7 @@ if config.globalParams
     end
     
     if config.leakOn
-        for i= 1:genotype.nInternalUnits
+        for i= 1:genotype.nTotalUnits
             leakStates = zeros(size(x));
             for n = 2:size(inputSequence,1)
                 leakStates(n,:) = (1-genotype.leakRate)*leakStates(n-1,:)+ genotype.leakRate*x(n,:);
@@ -26,9 +26,9 @@ if config.globalParams
     end
 
     if config.AddInputStates
-        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:),1)) inputSequence(config.nForgetPoints+1:end,:) x(config.nForgetPoints+1:end,:)];
+        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) inputSequence(config.nForgetPoints+1:end,:) x(config.nForgetPoints+1:end,:)];
     else
-        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:),1)) x(config.nForgetPoints+1:end,:)];
+        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) x(config.nForgetPoints+1:end,:)];
     end
     
 else % no global params

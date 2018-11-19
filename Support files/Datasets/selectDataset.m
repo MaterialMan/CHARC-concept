@@ -333,14 +333,21 @@ switch inputData
         queueType = 'simple';
         nForgetPoints = 0;
         train_fraction=0.25;    val_fraction=0.375;    test_fraction=0.375;
+        hardware = 0;
         
-        t = digitTrainCellArrayData; %28 x 28 image x 5000
-        for i=1:length(t)
-            u(:,i) = t{i}(:);
+        [xTrainImages,tTrain] = digitTrainCellArrayData; %28 x 28 image x 5000
+
+        for i=1:length(xTrainImages)
+            u(:,i) = xTrainImages{i}(:);
         end
         
-        inputSequence= u';
-        outputSequence= u';
+        target=randperm(length(xTrainImages));
+        temp_inputSequence = u(:,target);
+        temp_outputSequence = tTrain(:,target);
+        
+        inputSequence = temp_inputSequence';
+        outputSequence = temp_outputSequence';
+        
         
     case 'poleBalance'
         errType = 'empty';

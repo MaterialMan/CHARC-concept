@@ -9,6 +9,11 @@ set(0,'currentFigure',figure1)
 switch(config.resType)
     case 'Graph'
         sample.EncoderWeights = full(genotype.w_in.*genotype.inputScaling)'; % N by U
+     case 'BZ'
+          sample.EncoderWeights = full(genotype.w_in.*genotype.inputScaling)'; % N by U
+    case 'DNA'
+         sample.EncoderWeights = full(genotype.w_in.*genotype.inputScaling)'; % N by U
+  
     otherwise
         sample.EncoderWeights = full(genotype.esnMinor.inputWeights(:,2:end).*genotype.esnMinor.inputScaling)'; % N by U
 end

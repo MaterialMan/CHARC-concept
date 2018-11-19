@@ -20,14 +20,17 @@ for i = 1:N_rings
 end
 
 %connecting rings
-for i = N_rings+1:N_rings*2-1
-    s(i,:) = s(i-(N_rings-1),:);
-    t(i,:) =  s(i-N_rings,:);   
+if N_rings > 1
+    for i = N_rings+1:N_rings*2-1
+        s(i,:) = s(i-(N_rings-1),:);
+        t(i,:) =  s(i-N_rings,:);
+    end
+    
+    %last ring
+    s(i+1,:) = s(1,:);
+    t(i+1,:) = s(i,:);
 end
 
-%last ring
-s(i+1,:) = s(1,:);
-t(i+1,:) = s(i,:);
 
 %add self connections
 if self_loop

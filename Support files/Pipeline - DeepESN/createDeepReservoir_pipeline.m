@@ -79,7 +79,7 @@ for res = 1:config.popSize
     end
     
     
-    genotype(res).Nunits = 0;
+    genotype(res).nTotalUnits = 0;
     
     %% connectivity to other reservoirs
     for i = 1:genotype(res).nInternalUnits
@@ -96,12 +96,12 @@ for res = 1:config.popSize
                 genotype(res).connectWeights{i,j} = 0;
             end
         end
-            genotype(res).Nunits = genotype(res).Nunits + genotype(res).esnMinor(i).nInternalUnits; 
+            genotype(res).nTotalUnits = genotype(res).nTotalUnits + genotype(res).esnMinor(i).nInternalUnits; 
     end
     
     if config.AddInputStates
-        genotype(res).outputWeights = zeros(genotype(res).Nunits+genotype(res).nInputUnits+1,genotype(res).nOutputUnits);
+        genotype(res).outputWeights = zeros(genotype(res).nTotalUnits+genotype(res).nInputUnits+1,genotype(res).nOutputUnits);
     else
-        genotype(res).outputWeights = zeros(genotype(res).Nunits+1,genotype(res).nOutputUnits);
+        genotype(res).outputWeights = zeros(genotype(res).nTotalUnits+1,genotype(res).nOutputUnits);
     end
 end

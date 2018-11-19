@@ -6,11 +6,14 @@
 % Date: 08/11/18
 
 clear
+
+warning('off','all')
+warning
 rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'BZ';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.resType = 'Graph';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
 config.maxMinorUnits = 10;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
@@ -26,26 +29,28 @@ config.trainingType = 'Ridge';              % blank is psuedoinverse. Other opti
 config.AddInputStates = 1;                  % add input to states
 config.regParam = 10e-5;                    % training regulariser
 config.sparseInputWeights = 0;              % use sparse inputs
+config.restricedWeight =0;                  % restrict weights between [0.2 0.4. 0.6 0.8 1]
+config.evolvedOutputStates = 0;             % sub-sample the states to produce output (is evolved)
+config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
-config.popSize = 50;                       % large pop better
+config.popSize = 100;                       % large pop better
 config.totalGens = 1000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
-config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Task parameters
-config.dataSet = 'SignalClassification';                 % Task to evolve for
+config.dataSet = 'NARMA10';                 % Task to evolve for
 [config.trainInputSequence,config.trainOutputSequence,config.valInputSequence,config.valOutputSequence,...
     config.testInputSequence,config.testOutputSequence,config.nForgetPoints,config.errType,config.queueType] = selectDataset(config.dataSet);
 
 [config,figure3,figure4] = getDataSetInfo(config);
 
 %% general params
-config.genPrint = 10;                       % gens to display achive and database
+config.genPrint = 2;                       % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 figure1 =figure;
 config.saveGen = 1000;                        % save at gen = saveGen
@@ -70,13 +75,14 @@ for test = 1:config.numTests
     %Assess Genotype
     if config.parallel
         parfor popEval = 1:config.popSize
+            warning('off','all')
             genotype(popEval) = config.testFcn(genotype(popEval),config);
-            fprintf('\n i = %d, error = %.4f\n',popEval,genotype(popEval).testError);
+            fprintf('\n i = %d, error = %.4f\n',popEval,genotype(popEval).valError);
         end
     else
         for popEval = 1:config.popSize
             genotype(popEval) = config.testFcn(genotype(popEval),config);
-            fprintf('\n i = %d, error = %.4f\n',popEval,genotype(popEval).testError);
+            fprintf('\n i = %d, error = %.4f\n',popEval,genotype(popEval).valError);
         end
     end
     
@@ -175,7 +181,7 @@ for test = 1:config.numTests
             genotype(loser) = config.mutFcn(genotype(loser),config);
             
             %% Evaluate and update fitness
-            genotype(loser) = config.testFcn(genotype(loser),config);
+            [genotype(loser),loserStates,loserOut] = config.testFcn(genotype(loser),config);
             
             %update errors
             storeError(test,gen,:) =  storeError(test,gen-1,:);
@@ -186,6 +192,10 @@ for test = 1:config.numTests
                 [best,best_indv] = min(storeError(test,gen,:));
                 fprintf('Gen %d, time taken: %.4f sec(s)\n  Winner: %.4f, Loser: %.4f, Best Error: %.4f \n',gen,toc/config.genPrint,genotype(winner).valError,genotype(loser).valError,best);
                 tic;
+                if strcmp(config.resType,'basicCA')
+                    figure(figure1)
+                    imagesc(loserStates');
+                end
                 if strcmp(config.resType,'Graph')
                     plotGridNeuron(figure1,genotype,storeError,test,best_indv,loser,config)
                 end

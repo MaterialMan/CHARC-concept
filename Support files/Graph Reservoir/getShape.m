@@ -29,6 +29,9 @@ switch(config.substrate)
         config.G = createLattice(config.NGrid,config.latticeType,config.self_loop,config.num_ensemble);
         config.N = size(config.G.Nodes,1);
         
+    case 'Ring'
+        config.G = torusGraph(config.NGrid,config.self_loop,1);
+        config.N = size(config.G.Nodes,1);
     otherwise
         error('Requires a substrate shape.')
 end

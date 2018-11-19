@@ -20,7 +20,7 @@ for i = 1:config.popSize
         config.task_num_inputs = size(config.trainInputSequence,2);
         config.task_num_outputs =size(config.trainOutputSequence,2);
     end
-    genotype(i).nInternalUnits = config.N;
+    genotype(i).nTotalUnits = config.N;
     
     genotype(i).w = zeros(config.N); %needs to be sparse
     if config.directedGraph
