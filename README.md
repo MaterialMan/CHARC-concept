@@ -1,15 +1,25 @@
 # CHARC-Framework
-MATLAB source code for the CHAracterisation of Reservoir Computers (CHARC) framework
+MATLAB source code for the CHAracterisation of Reservoir Computers (CHARC) framework used in paper.
 
-See wiki for more information.
+See wiki for detailed more information.
 
 *Make sure files are on the MATLAB path when using the framework.
 
-# Branch - Version_2
-Added new flexibility to use framework with different substrates including:
+# Version 2 (branch)
+Added new reservoirs:
 - Reservoir of Reservoirs (RoR) architecture
-- "Deep" reservoirs
+- "Deep"/pipeline reservoirs
 - Ensemble reservoirs
-- Graph-based reservoirs
+- Graph-based reservoirs (including some ensembles)
+- Belousov–Zhabotinsky reaction reservoir
+- DNA (network of coupled deoxyribozyme oscillators) reservoir
+- Boolean network reservoir (Cellular Automata can be implemented with RBN)
 
-Can also evolve each substrate directly to a task (EvolveToTask folder).
+All these work with:
+- CHARC Framework
+- Evolve directly to task
+- Multi-objective(task) evolution using NSGA-II
+
+Extra tasks added:
+- Pole balancing: inverted pendulum, doube-pole inverted pendulum, swinging pendulum
+- Autoencoder
