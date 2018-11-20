@@ -21,8 +21,7 @@ for res = 1:config.popSize
     
     genotype(res).nInternalUnits = randi([config.minMajorUnits config.maxMajorUnits]);
     
-    
-    if isempty(config.trainInputSequence)
+    if isempty(config.trainInputSequence) 
         genotype(res).nInputUnits = 1;
         genotype(res).nOutputUnits = 1;
     else

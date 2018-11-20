@@ -26,22 +26,9 @@ function [nodeUpdated, timeStateMatrix] = evolveARBN(node, varargin)
 %   Author: Christian Schwarzer - SSC EPFL
 %   CreationDate: 20.11.2002 LastModified: 20.01.2003
 
-
-
-
-switch nargin
-case 1
-    k = 1;
-    tk = inf;
-case 2
-    k = varargin{1};
-    tk = inf;
-case 3
-    k = varargin{1};
-    tk = varargin{2};  
-otherwise
-    error('Wrong number of arguments. Type: help evolveARBN');
-end
+k = varargin{1};
+inputSequence = varargin{2};
+genotype = varargin{3};
 
 
 nodeUpdated = resetNodeStats(node);
@@ -54,6 +41,14 @@ n = length(nodeUpdated);
 for i=2:k+1
     
     nodeSelected = randi([1 n],1,1);
+    
+     % Apply input (somehow)
+    for j = 1:length(node)
+        if genotype.input_loc(j)
+            nodeUpdated(j).state = inputSequence(i-1,j);
+            nodeUpdated(j).nextState = inputSequence(i,j);
+        end
+    end
     
     nodeUpdated = setLUTLines(nodeUpdated);
     nodeUpdated = setNodeNextState(nodeUpdated);

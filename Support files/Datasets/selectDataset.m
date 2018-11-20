@@ -4,13 +4,13 @@
 % - Incomplete, but most datasets should work.
 
 function [trainInputSequence,trainOutputSequence,valInputSequence,valOutputSequence,...
-    testInputSequence,testOutputSequence,nForgetPoints,errType,queueType] = selectDataset(inputData,hardware)
+    testInputSequence,testOutputSequence,nForgetPoints,errType,queueType] = selectDataset(inputData,preprocess)
 
 scurr = rng;
 temp_seed = scurr.Seed;
 
 if nargin < 2
-    hardware = 1;
+    preprocess = 1;
 end
 
 rng(1,'twister');
@@ -274,11 +274,6 @@ switch inputData
         
         inputSequence = combInput;
         outputSequence = combOutput;
-%         figure
-%         subplot(2,1,1)
-%         plot(inputSequence(1:350))
-%         subplot(2,1,2)
-%         plot(outputSequence(1:350,:))
         
     case 'Iris' %iris_dataset; (4:in, 3:out) %input alone 76% - medium task
         errType = 'softmax';%'confusion';
@@ -333,7 +328,7 @@ switch inputData
         queueType = 'simple';
         nForgetPoints = 0;
         train_fraction=0.25;    val_fraction=0.375;    test_fraction=0.375;
-        hardware = 0;
+        preprocess = 0;
         
         [xTrainImages,tTrain] = digitTrainCellArrayData; %28 x 28 image x 5000
 
@@ -362,11 +357,21 @@ end
 %[inputSequence, mu, sigma] = featureNormalize(inputSequence);
 
 %squash
-if hardware
-    for i = 1:size(inputSequence,2)
-        if max(inputSequence(:,i)) ~= 0
-            inputSequence(:,i) = ((inputSequence(:,i)-mean(inputSequence(:,i)))/((max(inputSequence(:,i))-min(inputSequence(:,i)))))-0.5;
-        end
+% if hardware
+%     for i = 1:size(inputSequence,2)
+%         if max(inputSequence(:,i)) ~= 0
+%             inputSequence(:,i) = ((inputSequence(:,i)-mean(inputSequence(:,i)))/((max(inputSequence(:,i))-min(inputSequence(:,i)))))-0.5;
+%         end
+%     end
+% end
+
+if preprocess
+    for i = 1:size(inputSequence,2)    
+        inputSequence(inputSequence(:,i) ~= 0,i) = (inputSequence(inputSequence(:,i) ~= 0,i)-mean(inputSequence(:,i)))/(max(inputSequence(:,i))-min(inputSequence(:,i)));
+    end
+    
+    for i = 1:size(outputSequence,2)    
+        outputSequence(outputSequence(:,i) ~= 0,i) = (outputSequence(outputSequence(:,i) ~= 0,i)-mean(outputSequence(:,i)))/(max(outputSequence(:,i))-min(outputSequence(:,i)));
     end
 end
 

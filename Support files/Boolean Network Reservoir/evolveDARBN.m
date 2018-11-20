@@ -27,22 +27,9 @@ function [nodeUpdated, timeStateMatrix] = evolveDARBN(node, varargin)
 %   CreationDate: 20.11.2002 LastModified: 20.01.2003
 
 
-
-
-switch nargin
-case 1
-    k = 1;
-    tk = inf;
-case 2
-    k = varargin{1};
-    tk = inf;
-case 3
-    k = varargin{1};
-    tk = varargin{2};  
-otherwise
-    error('Wrong number of arguments. Type: help evolveDARBN');
-end
-
+k = varargin{1};
+inputSequence = varargin{2};
+genotype = varargin{3};
 
 nodeUpdated = resetNodeStats(node);
 
@@ -59,6 +46,14 @@ for i=2:k+1
     for j=1:n
         if(mod(timeNow,nodeUpdated(j).p) == nodeUpdated(j).q)
             nodeSelected = [nodeSelected j];
+        end
+    end
+    
+     % Apply input (somehow)
+    for j = 1:length(node)
+        if genotype.input_loc(j)
+            nodeUpdated(j).state = inputSequence(i-1,j);
+            nodeUpdated(j).nextState = inputSequence(i,j);
         end
     end
         

@@ -34,16 +34,23 @@ end
 genotype.w_in = reshape(w_in,size(genotype.w_in));
 
 
-% % input_loc
-% for i = 1:length(genotype.input_loc)
-%     if rand < config.mutRate
-%         genotype.input_loc(i) = round(rand);
-%     end
-% end
-% genotype.totalInputs = sum(genotype.input_loc);
+% input_loc
+for i = 1:length(genotype.input_loc)
+    if rand < config.mutRate
+        genotype.input_loc(i) = round(rand);
+    end
+end
+genotype.totalInputs = sum(genotype.input_loc);
+
+% initial states
+if strcmp(config.resType,'basicCA')
+    initialStates = genotype.initialStates(:);
+    pos =  randi([1 length(initialStates)],round(config.mutRate*length(initialStates)),1);
+    initialStates(pos) = round(rand(length(pos),1));
+    genotype.initialStates = reshape(initialStates,size(genotype.initialStates));
+end
 
 if config.evolvedOutputStates
-    
     if rand < config.mutRate %not really used, yet
         genotype.state_perc = rand;
     end

@@ -13,19 +13,13 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'Graph';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 10;                   % num of nodes in subreservoirs
+config.resType = 'RBN';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 20;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 
 %% Network details
-config.startFull = 1;                       % start with max network size
-config.alt_node_size = 0;                   % allow different network sizes
-config.multiActiv = 0;                      % use different activation funcs
 config.leakOn = 1;                          % add leak states
-config.rand_connect =1;                     % radnomise networks
-config.activList = {'tanh';'linearNode'};   % what activations are in use when multiActiv = 1
-config.trainingType = 'Ridge';              % blank is psuedoinverse. Other options: Ridge, Bias,RLS
 config.AddInputStates = 1;                  % add input to states
 config.regParam = 10e-5;                    % training regulariser
 config.sparseInputWeights = 0;              % use sparse inputs
@@ -43,7 +37,7 @@ config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
 
 %% Task parameters
-config.dataSet = 'NARMA10';                 % Task to evolve for
+config.dataSet = 'Iris';                 % Task to evolve for
 [config.trainInputSequence,config.trainOutputSequence,config.valInputSequence,config.valOutputSequence,...
     config.testInputSequence,config.testOutputSequence,config.nForgetPoints,config.errType,config.queueType] = selectDataset(config.dataSet);
 
@@ -54,7 +48,7 @@ config.genPrint = 2;                       % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 figure1 =figure;
 config.saveGen = 1000;                        % save at gen = saveGen
-config.parallel = 1;                        % use parallel toolbox
+config.parallel = 0;                        % use parallel toolbox
 config.multiOffspring = 0;                  % multiple tournament selection and offspring in one cycle
 config.numSyncOffspring = config.deme;      % length of cycle/synchronisation step
 config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]

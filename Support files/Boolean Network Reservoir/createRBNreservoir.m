@@ -24,10 +24,12 @@ for res = 1:config.popSize
     genotype(res).size = config.maxMinorUnits;
     genotype(res).RBNtype = config.RBNtype;   
     
+    
     if strcmp(config.resType,'basicCA')
+        genotype(res).initialStates = round(rand(config.maxMinorUnits,1));
         genotype(res).conn= config.conn;
         genotype(res).rules = config.rules;
-        genotype(res).node = initNodes(genotype(res).size,config.initialStates,zeros(genotype(res).size,1),zeros(genotype(res).size,1));
+        genotype(res).node = initNodes(genotype(res).size,genotype(res).initialStates,zeros(genotype(res).size,1),zeros(genotype(res).size,1));
     else
         genotype(res).node = initNodes(genotype(res).size);
         genotype(res).conn= initConnections(genotype(res).size, config.k);

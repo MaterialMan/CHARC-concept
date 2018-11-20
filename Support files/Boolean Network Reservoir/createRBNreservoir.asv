@@ -1,7 +1,7 @@
 function genotype = createRBNreservoir(config) 
 
 genotype = [];
-for res = 1:config.popSize  %y243432  
+for res = 1:config.popSize    
     
     genotype(res).trainError = 1;    
     genotype(res).valError = 1;  
@@ -24,7 +24,9 @@ for res = 1:config.popSize  %y243432
     genotype(res).size = config.maxMinorUnits;
     genotype(res).RBNtype = config.RBNtype;   
     
+    
     if strcmp(config.resType,'basicCA')
+        genotype(res).initialStates = ones(config.maxMinorUnits,1);
         genotype(res).conn= config.conn;
         genotype(res).rules = config.rules;
         genotype(res).node = initNodes(genotype(res).size,config.initialStates,zeros(genotype(res).size,1),zeros(genotype(res).size,1));

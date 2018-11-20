@@ -43,11 +43,11 @@ for i=2:k
     nodeUpdated = setLUTLines(nodeUpdated);        
     nodeUpdated = setNodeNextState(nodeUpdated);
     
-    % Apply input (somehow)
+  % Apply input (somehow)
     for j = 1:length(node)
         if genotype.input_loc(j)
-            nodeUpdated(j).state = (sign(inputSequence(i-1,:)*genotype.w_in(j,:))+1)/2;
-            nodeUpdated(j).nextState = (sign(inputSequence(i,:)*genotype.w_in(j,:))+1)/2;
+            nodeUpdated(j).state = inputSequence(i-1,j);
+            nodeUpdated(j).nextState = inputSequence(i,j);
         end
     end
     

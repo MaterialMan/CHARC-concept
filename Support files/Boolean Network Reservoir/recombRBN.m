@@ -38,11 +38,22 @@ pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
 Loser(pos) = Winner(pos);
 l.w_in = reshape(Loser,size(l.w_in));
 
-% Winner= w.input_loc;
-% Loser = l.input_loc;
-% pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
-% Loser(pos) = Winner(pos);
-% l.input_loc = Loser;
+% input location
+Winner= w.input_loc;
+Loser = l.input_loc;
+pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
+Loser(pos) = Winner(pos);
+l.input_loc = Loser;
+l.totalInputs = sum(l.input_loc); %update input loc total
+
+if strcmp(config.resType,'basicCA')
+    % initial states
+    Winner= w.initialStates;
+    Loser = l.initialStates;
+    pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
+    Loser(pos) = Winner(pos);
+    l.initialStates = Loser;           
+end
 
 if config.evolvedOutputStates
     Winner= w.state_loc;

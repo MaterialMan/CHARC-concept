@@ -1,4 +1,4 @@
-
+%% Types of reservoirs available
 function config = selectReservoirType(config)
 
 switch(config.resType)

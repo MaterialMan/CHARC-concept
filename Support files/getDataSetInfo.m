@@ -2,10 +2,19 @@
 function [config,figure3,figure4] = getDataSetInfo(config)
 
 %% overflow for params that can be changed
-
 figure3= 0; figure4 = 0;
-config.task_num_inputs = size(config.trainInputSequence,2);
-config.task_num_outputs = size(config.trainOutputSequence,2);
+if ~config.nsga2
+    config.task_num_inputs = size(config.trainInputSequence,2);
+    config.task_num_outputs = size(config.trainOutputSequence,2);
+end
+
+%% ESN params
+config.startFull = 1;                       % start with max network size
+config.alt_node_size = 0;                   % allow different network sizes
+config.multiActiv = 0;                      % use different activation funcs
+config.rand_connect = 1;                    % radnomise networks
+config.activList = {'tanh';'linearNode'};   % what activations are in use when multiActiv = 1
+config.trainingType = 'Ridge';              % blank is psuedoinverse. Other options: Ridge, Bias,RLS
 
 %% Bz reservoir
 if strcmp(config.resType,'BZ')
@@ -18,14 +27,16 @@ end
 %% Graph params
 if strcmp(config.resType,'Graph')
     
-    config.substrate= 'Ring';            % Define substrate
-    % Examples: 'Lattice', 'Hypercube', 'Torus','L-shape','Bucky','Barbell'
+    config.substrate= 'Lattice';            % Define substrate
+    % Examples: 'Lattice', 'Hypercube',
+    % 'Torus','L-shape','Bucky','Barbell','Ring'
+    
     config.NGrid = config.maxMinorUnits;    % Number of nodes
     config.num_ensemble = 3;                % number of lattices
     
     % substrate params
     config.N_rings = 0;                     % used with Torus
-    config.latticeType = 'fullLattice';        % see creatLattice.m for different types.
+    config.latticeType = 'fullCube';        % see creatLattice.m for different types.
     % Examples: 'basicLattice','partialLattice','fullLattice','basicCube','partialCube','fullCube',
     
     % node details and connectivity
@@ -45,7 +56,6 @@ if strcmp(config.resType,'DNA')
     config.step_size = 1;                   %step size for ODE solver 
 end
 
-
 %% RBN reservoir
 if strcmp(config.resType,'RBN')
     config.k = 2;
@@ -64,7 +74,6 @@ if strcmp(config.resType,'RBN')
         otherwise
             error('Unknown update mode. Type ''help displayEvolution'' to see supported modes')
     end
- 
 end
 
 %% CA reservoir
@@ -89,8 +98,6 @@ if strcmp(config.resType,'basicCA')
         rules(:,i) = [1 0 1 0 0 1 0 1]';
     end
     config.rules = initRules(rules);
-    config.initialStates = ones(config.maxMinorUnits,1); 
-    config.initialStates(46) = 0;
 end
 
 %% Task bottom of list
