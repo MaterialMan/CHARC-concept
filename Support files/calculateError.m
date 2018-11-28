@@ -241,6 +241,12 @@ switch(type)
 %             err=mean(temp_err);
 %         end
 
+    case 'hamming'
+        
+        systemOutput = round(systemOutput);
+        D = pdist2(systemOutput,desiredOutput,'hamming');
+        err = sum(diag(D))/length(systemOutput);
+
     case 'softmax'
         
      a = [];

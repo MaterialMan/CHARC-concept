@@ -62,6 +62,12 @@ switch(config.resType)
         config.mutFcn = @mutateRBN;
         config.recFcn = @recombRBN;
         
+    case '2dCA'
+        config.createFcn = @createRBNreservoir;
+        config.assessFcn = @assessRBNreservoir;
+        config.mutFcn = @mutateRBN;
+        config.recFcn = @recombRBN;
+        
     case 'DNA'
         config.createFcn = @createDNAreservoir;
         config.assessFcn = @assessDNAreservoir;

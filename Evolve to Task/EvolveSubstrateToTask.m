@@ -8,19 +8,19 @@
 clear
 
 warning('off','all')
-warning
 rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'RBN';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 20;                   % num of nodes in subreservoirs
+config.resType = '2dCA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 10;                  % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
+config.nsga2 = 0;                           % not using NSGA
 
 %% Network details
-config.leakOn = 1;                          % add leak states
-config.AddInputStates = 1;                  % add input to states
+config.leakOn = 0;                          % add leak states
+config.AddInputStates = 0;                  % add input to states
 config.regParam = 10e-5;                    % training regulariser
 config.sparseInputWeights = 0;              % use sparse inputs
 config.restricedWeight =0;                  % restrict weights between [0.2 0.4. 0.6 0.8 1]
@@ -30,7 +30,7 @@ config.evolveOutputWeights = 0;             % evolve rather than train
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
 config.popSize = 100;                       % large pop better
-config.totalGens = 1000;                    % num of gens
+config.totalGens = 250;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
@@ -44,14 +44,15 @@ config.dataSet = 'Iris';                 % Task to evolve for
 [config,figure3,figure4] = getDataSetInfo(config);
 
 %% general params
-config.genPrint = 2;                       % gens to display achive and database
+config.genPrint = 10;                       % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 figure1 =figure;
-config.saveGen = 1000;                        % save at gen = saveGen
-config.parallel = 0;                        % use parallel toolbox
+config.saveGen = 5000;                        % save at gen = saveGen
+config.parallel = 1;                        % use parallel toolbox
 config.multiOffspring = 0;                  % multiple tournament selection and offspring in one cycle
 config.numSyncOffspring = config.deme;      % length of cycle/synchronisation step
-config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]
+config.use_metric =[1 1 0];                 % metrics to use = [KR GR LE]
+config.record_metrics = 0;
 
 %% RUn MicroGA
 for test = 1:config.numTests
@@ -179,7 +180,7 @@ for test = 1:config.numTests
             
             %update errors
             storeError(test,gen,:) =  storeError(test,gen-1,:);
-            storeError(test,gen,loser) = genotype(loser).valError;
+            storeError(test,gen,loser) = genotype(loser).valError;%genotype(loser).valError;
             
             % print info
             if (mod(gen,config.genPrint) == 0)
@@ -215,12 +216,13 @@ for test = 1:config.numTests
         end
     end
     
-    %get metric details
+    %get metric details 
+    if config.record_metrics
     parfor popEval = 1:config.popSize
         [~, kernel_rank(test,popEval), gen_rank(test,popEval)] = metricKQGRLE(genotype(popEval),config);
         MC(test,popEval) = metricMemory(genotype(popEval),config);
     end
-    
+    end
 end
 
 function plotGridNeuron(figure1,genotype,storeError,test,best_indv,loser,config)

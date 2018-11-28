@@ -351,6 +351,58 @@ switch inputData
         nForgetPoints = 0;
         inputSequence= zeros(100,4);
         outputSequence= zeros(100,1);
+        
+    case 'BinaryNbitAdder'
+        
+        errType = 'hamming';
+        queueType = 'simple';
+        type = 'nbit_adder';
+        bit = 3;
+        datalength = 5000;
+        nForgetPoints = 25;
+        train_fraction=0.5;    val_fraction=0.25;    test_fraction=0.25;
+        preprocess =0;
+        
+        A_in = randi([0 (2^bit)-1],datalength,1);
+        B_in = randi([0 (2^bit)-1],datalength,1);
+        
+        input = [de2bi(A_in,bit) de2bi(B_in,bit)];
+        output=[];
+        for i = 1:datalength
+            output(i,:) = getAdderTruthTable(type,[bit,A_in(i),B_in(i)]);
+        end
+        
+        in  = [bi2de(input(:,1:bit)) bi2de(input(:,bit+1:end))];
+        out = bi2de(output);
+        hist(out)
+        
+        % get uniform distribution
+        [N,edges,bin] = histcounts(out,2^bit*2);
+        cnt = 1;bin_in=[];bin_out=[];
+        for i = min(bin):max(bin)
+            bin_in{cnt} = input(bin == i,:);
+            bin_out{cnt} = output(bin == i,:);
+            cnt = cnt +1;
+        end
+        
+        for i = 1:datalength
+            ex = 1;
+            while(ex)
+                pos = randi([min(bin) max(bin)]);
+                if ~isempty(bin_in{pos})  
+                    ex = 0;
+                end
+            end
+            pos2 = randi([1 length(bin_in{pos})]);
+            inputSequence(i,:) = bin_in{pos}(pos2,:);
+            outputSequence(i,:) = bin_out{pos}(pos2,:);
+        end
+        
+        in  = [bi2de(inputSequence(:,1:bit)) bi2de(inputSequence(:,bit+1:end))];
+        out = bi2de(outputSequence);
+        hist(out)
+        %hist(in(:,2))
+        %hist(in(:,1))
 end
 
 %normalise all features

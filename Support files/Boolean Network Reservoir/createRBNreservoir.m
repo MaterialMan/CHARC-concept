@@ -25,15 +25,32 @@ for res = 1:config.popSize
     genotype(res).RBNtype = config.RBNtype;   
     
     
-    if strcmp(config.resType,'basicCA')
-        genotype(res).initialStates = round(rand(config.maxMinorUnits,1));
-        genotype(res).conn= config.conn;
-        genotype(res).rules = config.rules;
-        genotype(res).node = initNodes(genotype(res).size,genotype(res).initialStates,zeros(genotype(res).size,1),zeros(genotype(res).size,1));
-    else
-        genotype(res).node = initNodes(genotype(res).size);
-        genotype(res).conn= initConnections(genotype(res).size, config.k);
-        genotype(res).rules = initRules(genotype(res).size, config.k);
+    switch(config.resType)
+        case 'basicCA'
+            genotype(res).initialStates = round(rand(config.maxMinorUnits,1));
+            genotype(res).conn= config.conn;
+            genotype(res).rules = config.rules;
+            genotype(res).node = initNodes(genotype(res).size,genotype(res).initialStates,zeros(genotype(res).size,1),zeros(genotype(res).size,1));
+        
+        case '2dCA'
+            
+            genotype(res).conn = zeros(config.maxMinorUnits); %needs to be sparse
+            genotype(res).G = config.G;
+            genotype(res).G.Edges.Weight = 2*rand(size(genotype(res).G.Edges,1),1)-1;
+            A = table2array(genotype(res).G.Edges);
+            for j = 1:size(genotype(res).G.Edges,1)
+                genotype(res).conn(A(j,1),A(j,2)) = 1;%A(j,3);
+                genotype(res).conn(A(j,2),A(j,1)) = 1;%A(j,3);
+            end
+            genotype(res).conn = sparse(genotype(res).conn);
+    
+            genotype(res).initialStates = round(rand(config.maxMinorUnits,1));
+            genotype(res).rules = config.rules;
+            genotype(res).node = initNodes(genotype(res).size,genotype(res).initialStates,zeros(genotype(res).size,1),zeros(genotype(res).size,1));
+        otherwise
+            genotype(res).node = initNodes(genotype(res).size);
+            genotype(res).conn= initConnections(genotype(res).size, config.k);
+            genotype(res).rules = initRules(genotype(res).size, config.k);
     end
     
     genotype(res).node = assocRules(genotype(res).node, genotype(res).rules);

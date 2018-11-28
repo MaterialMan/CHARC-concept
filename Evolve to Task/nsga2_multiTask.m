@@ -11,7 +11,7 @@
 %% Setup
 % type of network to evolve
 config.resType = 'DNA';                     % can use different hierarchical reservoirs or substrate. RoR_IA is default ESN.
-config.maxMinorUnits = 4;                   % num of nodes in subreservoirs
+config.maxMinorUnits = 3;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 
@@ -91,6 +91,7 @@ for run = 1:config.numTests
     start_time = tic;
     rng(run, 'simdTwister');
     results.rng_state = rng;
+    tic
     
     % Evaluate and store the reference individual
     if ~isempty(config.ref_vals)

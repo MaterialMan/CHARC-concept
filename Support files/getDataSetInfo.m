@@ -36,7 +36,7 @@ if strcmp(config.resType,'Graph')
     
     % substrate params
     config.N_rings = 0;                     % used with Torus
-    config.latticeType = 'fullCube';        % see creatLattice.m for different types.
+    config.latticeType = 'fullLattice';        % see creatLattice.m for different types.
     % Examples: 'basicLattice','partialLattice','fullLattice','basicCube','partialCube','fullCube',
     
     % node details and connectivity
@@ -44,7 +44,7 @@ if strcmp(config.resType,'Graph')
     config.plotStates = 0;                  % plot states in real-time.
     config.nearest_neighbour = 0;           % choose radius of nearest neighbour, or set to 0 for direct neighbour.
     config.directedGraph = 1;               % directed graph (i.e. weight for all directions).
-    config.self_loop = 0;                   % give node a loop to self.
+    config.self_loop = 1;                   % give node a loop to self.
     config.inputEval = 0;                   % add input directly to node, otherwise node takes inputs value.
     config = getShape(config);              % call function to make graph.
     config.plot3d = 0;                      % plot graph in 3D.
@@ -76,7 +76,7 @@ if strcmp(config.resType,'RBN')
     end
 end
 
-%% CA reservoir
+%% 1-D CA reservoir
 if strcmp(config.resType,'basicCA')
     % update type 
     config.RBNtype = @evolveCRBN;
@@ -100,6 +100,34 @@ if strcmp(config.resType,'basicCA')
     config.rules = initRules(rules);
 end
 
+%% 2-D CA reservoir
+if strcmp(config.resType,'2dCA')
+    % update type 
+    config.RBNtype = @evolveCRBN;
+    
+    % Define CA connectivity
+    config.self_loop = 1;                   % give node a loop to self.
+    config.directedGraph = 0;               % directed graph (i.e. weight for all directions).
+    config.ruleType = 'VonNeu';
+    config.maxMinorUnits = config.maxMinorUnits^2;
+    
+    % define rules 
+    switch(config.ruleType)
+        case 'Moores'
+            for i=1:config.maxMinorUnits
+                rules(:,i) = round(rand(1,2^8))';
+            end
+            config.G = torusGraph(sqrt(config.maxMinorUnits),config.self_loop,sqrt(config.maxMinorUnits));
+        
+        case 'VonNeu'
+            for i=1:config.maxMinorUnits
+                rules(:,i) = round(rand(1,2^5))';
+            end
+            config.G = torusGraph(sqrt(config.maxMinorUnits),config.self_loop,sqrt(config.maxMinorUnits));
+    end
+    config.rules = initRules(rules);
+end
+
 %% Task bottom of list
 if strcmp(config.dataSet,'autoencoder')
     config.leakOn = 0;                          % add leak states
@@ -118,3 +146,11 @@ if strcmp(config.dataSet,'poleBalance')
     config.evolveOutputWeights = 1;
 end
 
+if strcmp(config.dataSet,'BinaryNbitAdder') 
+    
+    
+    if strcmp(config.resType,'Graph')
+        %config.directedGraph = 1;               % directed graph (i.e. weight for all directions).
+        %config.self_loop = 1;
+    end
+end

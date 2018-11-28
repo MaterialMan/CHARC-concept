@@ -9,8 +9,8 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'BZ';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 20;                   % num of nodes in subreservoirs
+config.resType = 'Graph';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 10;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -29,13 +29,15 @@ config.trainInputSequence= [];
 config.trainOutputSequence =[];
 config.dataSet =[];
 config.sparseInputWeights = 0;              % use sparse inputs
+config.nsga2 = 1;
+
 
 [config,figure3,figure4] = getDataSetInfo(config);
 
 %Evolutionary parameters
 config.numTests = 1;                        % num of runs
 config.popSize = 100;                       % large pop better
-config.totalGens = 1000;                    % num of gens
+config.totalGens = 1;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);

@@ -20,7 +20,7 @@ for j = 1:config.num_objectives
     config.task_num_outputs = size(config.trainOutputSequence,2);
     
     genotype = testReservoir(genotype,config);
-    y(j) = sum(genotype.trainError + genotype.valError);
+    y(j) = sum(genotype.valError);%sum(genotype.trainError + genotype.valError);
 end
 
 end
