@@ -12,8 +12,8 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = '2dCA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 10;                  % num of nodes in subreservoirs
+config.resType = 'RoR_IA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 25;                  % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 config.nsga2 = 0;                           % not using NSGA
@@ -23,21 +23,21 @@ config.leakOn = 0;                          % add leak states
 config.AddInputStates = 0;                  % add input to states
 config.regParam = 10e-5;                    % training regulariser
 config.sparseInputWeights = 0;              % use sparse inputs
-config.restricedWeight =0;                  % restrict weights between [0.2 0.4. 0.6 0.8 1]
+config.restricedWeight = 0;                  % restrict weights between [0.2 0.4. 0.6 0.8 1]
 config.evolvedOutputStates = 0;             % sub-sample the states to produce output (is evolved)
 config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
 config.popSize = 100;                       % large pop better
-config.totalGens = 250;                    % num of gens
+config.totalGens = 2000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
 
 %% Task parameters
-config.dataSet = 'Iris';                 % Task to evolve for
+config.dataSet = 'autoencoder';                 % Task to evolve for
 [config.trainInputSequence,config.trainOutputSequence,config.valInputSequence,config.valOutputSequence,...
     config.testInputSequence,config.testOutputSequence,config.nForgetPoints,config.errType,config.queueType] = selectDataset(config.dataSet);
 
@@ -47,7 +47,7 @@ config.dataSet = 'Iris';                 % Task to evolve for
 config.genPrint = 10;                       % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 figure1 =figure;
-config.saveGen = 5000;                        % save at gen = saveGen
+config.saveGen = 1000;                        % save at gen = saveGen
 config.parallel = 1;                        % use parallel toolbox
 config.multiOffspring = 0;                  % multiple tournament selection and offspring in one cycle
 config.numSyncOffspring = config.deme;      % length of cycle/synchronisation step
@@ -76,8 +76,9 @@ for test = 1:config.numTests
         end
     else
         for popEval = 1:config.popSize
+            tic
             genotype(popEval) = config.testFcn(genotype(popEval),config);
-            fprintf('\n i = %d, error = %.4f\n',popEval,genotype(popEval).valError);
+            fprintf('\n i = %d, error = %.4f, took: %.4f\n',popEval,genotype(popEval).valError,toc);
         end
     end
     

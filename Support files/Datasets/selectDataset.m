@@ -134,7 +134,7 @@ switch inputData
         %% Pattern Recognition - using PCA to reduce dimensions maybe very useful
         
     case 'autoencoder'
-        errType = 'NMSE';
+        errType = 'MSE';
         queueType = 'simple';
         nForgetPoints = 0;
         train_fraction=0.25;    val_fraction=0.375;    test_fraction=0.375;

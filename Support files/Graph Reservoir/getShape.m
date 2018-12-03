@@ -1,3 +1,6 @@
+%% called from getDataSetInfo
+% Create graph structure G to use
+
 function config = getShape(config)
 
 switch(config.substrate)
@@ -17,7 +20,7 @@ switch(config.substrate)
         config.N = size(config.G.Nodes,1);
         
     case 'Torus'
-        config.G = torusGraph(config.NGrid,config.self_loop,config.N_rings);
+        config.G = torusGraph(config.NGrid,config.self_loop,config.N_rings,config);
         config.N = size(config.G.Nodes,1);
         
     case 'Barbell'
@@ -30,7 +33,7 @@ switch(config.substrate)
         config.N = size(config.G.Nodes,1);
         
     case 'Ring'
-        config.G = torusGraph(config.NGrid,config.self_loop,1);
+        config.G = torusGraph(config.NGrid,config.self_loop,1,config);
         config.N = size(config.G.Nodes,1);
         
     otherwise

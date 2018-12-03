@@ -14,11 +14,19 @@ end
 % end
 
 %rules
-Winner= w.rules(:);
-Loser = l.rules(:);
-pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
-Loser(pos) = Winner(pos);
-l.rules = int8(reshape(Loser,size(l.rules)));
+if ~config.mono_rule
+    Winner= w.rules(:);
+    Loser = l.rules(:);
+    pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
+    Loser(pos) = Winner(pos);
+    l.rules = int8(reshape(Loser,size(l.rules)));
+else
+    Winner= w.rules(:,1);
+    Loser = l.rules(:,1);
+    pos = randi([1 length(Loser)],round(config.recRate*length(Loser)),1);
+    Loser(pos) = Winner(pos);
+    l.rules = int8(repmat(Loser,1,size(l.rules,2)));
+end
 
 % % nodes
 % Winner= w.node(:);

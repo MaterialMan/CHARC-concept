@@ -55,8 +55,8 @@ switch(type)
         %err = mean((systemOutput-desiredOutput(nForgetPoints+1:end,:)).^2/var(systemOutput));
         %err =((systemOutput-desiredOutput(nForgetPoints+1:end,:)).^2)'/var(systemOutput')/size(systemOutput,2);
     case 'MSE'
-        err = immse(systemOutput,desiredOutput);
-        %err = mean((systemOutput-desiredOutput).^2);
+        %err = immse(systemOutput,desiredOutput); 
+        err = mean((desiredOutput-systemOutput).^2);
         
     case 'SER'
         preDefined = [-3 -1 1 3];

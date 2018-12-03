@@ -24,7 +24,7 @@ function [nodeUpdated, timeStateMatrix] = evolveARBN(node, varargin)
 
 
 %   Author: Christian Schwarzer - SSC EPFL
-%   CreationDate: 20.11.2002 LastModified: 20.01.2003
+%   CreationDate: 20.11.2002 LastModified: 30.11.2018 (Matt Dale)
 
 k = varargin{1};
 inputSequence = varargin{2};
@@ -40,28 +40,14 @@ n = length(nodeUpdated);
 % evolve network
 for i=2:k+1
     
-    nodeSelected = randi([1 n],1,1);
-    
-     % Apply input (somehow)
-    for j = 1:length(node)
-        if genotype.input_loc(j)
-            nodeUpdated(j).state = inputSequence(i-1,j);
-            nodeUpdated(j).nextState = inputSequence(i,j);
-        end
-    end
+    nodeSelected = randi([1 n],1,1);        %pick node at random    
     
     nodeUpdated = setLUTLines(nodeUpdated);
-    nodeUpdated = setNodeNextState(nodeUpdated);
+    nodeUpdated = setNodeNextState(nodeUpdated,genotype,inputSequence(i-1,:));
     
     nodeUpdated(nodeSelected).state = nodeUpdated(nodeSelected).nextState;
     nodeUpdated(nodeSelected).nbUpdates = nodeUpdated(nodeSelected).nbUpdates + 1;
     
     timeStateMatrix(1:length(nodeUpdated),i) = getStateVector(nodeUpdated)';
-    
-    if(mod(i-1,tk) == 0)
-        saveMatrix(nodeUpdated);
-        saveMatrix(timeStateMatrix(:,1:i));
-        i-1;  % display current time-step for user information
-    end
-    
+        
 end

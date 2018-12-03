@@ -10,7 +10,7 @@ rng(1,'twister');
 %% Setup
 % type of network to evolve
 config.resType = '2dCA';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 10;                   % num of nodes in subreservoirs
+config.maxMinorUnits = 50;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -18,11 +18,11 @@ config = selectReservoirType(config);       %get correct functions for type of r
 config.startFull = 1;                       % start with max network size
 config.alt_node_size = 0;                   % allow different network sizes
 config.multiActiv = 0;                      % use different activation funcs
-config.leakOn = 1;                          % add leak states
+config.leakOn = 0;                          % add leak states
 config.rand_connect =1;                     %radnomise networks
 config.activList = {'tanh';'linearNode'};   % what activations are in use when multiActiv = 1
 config.trainingType = 'Ridge';              %blank is psuedoinverse. Other options: Ridge, Bias,RLS
-config.AddInputStates = 1;                  %add input to states
+config.AddInputStates = 0;                  %add input to states
 config.regParam = 10e-5;                    %training regulariser
 config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]
 config.trainInputSequence= [];
@@ -37,8 +37,8 @@ config.evolvedOutputStates = 0;             %if evovled outputs are wanted
 
 %Evolutionary parameters
 config.numTests = 1;                        % num of runs
-config.popSize = 100;                       % large pop better
-config.totalGens = 100;                    % num of gens
+config.popSize = 150;                       % large pop better
+config.totalGens = 3000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);

@@ -1,30 +1,30 @@
 function [nodeUpdated, timeStateMatrix] = evolveDARBN(node, varargin)
 
-%  EVOLVEDARBN Develop network gradually K discrete time-steps according to DARBN (Deterministic 
+%  EVOLVEDARBN Develop network gradually K discrete time-steps according to DARBN (Deterministic
 %  Asynchronous Random Boolean Network) update scheme
 %
 %   EVOLVEDARBN(NODE) advances all nodes in NODE one time-step in DARBN update mode.
-%   
+%
 %   EVOLVEDARBN(NODE, K) advances all nodes in NODE K time-steps in DARBN update mode.
 %
 %   EVOLVEDARBN(NODE, K, TK) advances all nodes in NODE K time-steps in DARBN update mode
 %   and saves all TK steps all node-states and the timeStateMatrix to the disk.
 %
-% 
+%
 %   Input:
 %       node               - 1 x n structure-array containing node information
 %       k                  - (Optional) Number of time-steps
 %       tk                 - (Optional) Period for saving node-states/timeStateMatrix to disk.
 %
-%   Output: 
+%   Output:
 %       nodeUpdated        - 1 x n sturcture-array with updated node information
-%                            ("lineNumber", "state", "nextState")                           
-%       timeStateMatrix    - n x k+1 matrix containing calculated time-state evolution                                        
+%                            ("lineNumber", "state", "nextState")
+%       timeStateMatrix    - n x k+1 matrix containing calculated time-state evolution
 
 
 
 %   Author: Christian Schwarzer - SSC EPFL
-%   CreationDate: 20.11.2002 LastModified: 20.01.2003
+%   CreationDate: 20.11.2002 LastModified: 30.11.2018 (Matt Dale)
 
 
 k = varargin{1};
@@ -49,27 +49,14 @@ for i=2:k+1
         end
     end
     
-     % Apply input (somehow)
-    for j = 1:length(node)
-        if genotype.input_loc(j)
-            nodeUpdated(j).state = inputSequence(i-1,j);
-            nodeUpdated(j).nextState = inputSequence(i,j);
-        end
-    end
-        
     for j=1:length(nodeSelected)
         nodeUpdated = setLUTLines(nodeUpdated);
-        nodeUpdated = setNodeNextState(nodeUpdated);
+        nodeUpdated = setNodeNextState(nodeUpdated,genotype,inputSequence(i-1,:));
+        
         nodeUpdated(nodeSelected(j)).state = nodeUpdated(nodeSelected(j)).nextState;
         nodeUpdated(nodeSelected(j)).nbUpdates = nodeUpdated(nodeSelected(j)).nbUpdates + 1;
     end
     
     timeStateMatrix(1:length(nodeUpdated),i) = getStateVector(nodeUpdated)';
-        
-    if(mod(i-1,tk) == 0)
-        saveMatrix(nodeUpdated);
-        saveMatrix(timeStateMatrix(:,1:i));
-        i-1;   % display current time-step for user information
-    end
-
+    
 end

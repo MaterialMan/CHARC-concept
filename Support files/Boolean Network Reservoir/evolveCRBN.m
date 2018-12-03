@@ -25,7 +25,7 @@ function [nodeUpdated, timeStateMatrix] = evolveCRBN(node, varargin)
 
 
 %   Author: Christian Schwarzer - SSC EPFL
-%   CreationDate: 15.11.2002 LastModified: 20.01.2003
+%   CreationDate: 15.11.2002 LastModified: 30.11.2018 (Matt Dale)
 
 
 k = varargin{1};
@@ -35,27 +35,19 @@ genotype = varargin{3};
 nodeUpdated = resetNodeStats(node);
 
 timeStateMatrix = zeros(length(nodeUpdated), k+1);
-timeStateMatrix(1:length(nodeUpdated),1) = getStateVector(nodeUpdated)';
+timeStateMatrix(:,1) = getStateVector(nodeUpdated)';
 
 % evolve network
 for i=2:k
-    
-    nodeUpdated = setLUTLines(nodeUpdated);        
-    nodeUpdated = setNodeNextState(nodeUpdated);
-    
-  % Apply input (somehow)
-    for j = 1:length(node)
-        if genotype.input_loc(j)
-            nodeUpdated(j).state = inputSequence(i-1,j);
-            nodeUpdated(j).nextState = inputSequence(i,j);
-        end
-    end
+    %tic
+    nodeUpdated = setLUTLines(nodeUpdated);
+    nodeUpdated = setNodeNextState(nodeUpdated,genotype,inputSequence(i-1,:));
     
     for j=1:length(nodeUpdated)
         nodeUpdated(j).state = nodeUpdated(j).nextState;
         nodeUpdated(j).nbUpdates = nodeUpdated(j).nbUpdates + 1;
     end
     
-    timeStateMatrix(1:length(nodeUpdated),i) = getStateVector(nodeUpdated)';
-
+    timeStateMatrix(:,i) = getStateVector(nodeUpdated)';
+   %toc
 end

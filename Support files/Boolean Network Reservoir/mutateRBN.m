@@ -15,10 +15,18 @@ end
 % end
 
 % rules
-rules = genotype.rules(:);
-pos =  randi([1 length(rules)],round(config.mutRate*length(rules)),1);
-rules(pos) = round(rand(length(pos),1));
-genotype.rules = reshape(rules,size(genotype.rules));
+if ~config.mono_rule
+    rules = genotype.rules(:);
+    pos =  randi([1 length(rules)],round(config.mutRate*length(rules)),1);
+    rules(pos) = round(rand(length(pos),1));
+    genotype.rules = int8(reshape(rules,size(genotype.rules)));
+else
+    new_rule = genotype.rules(:,1);
+    pos =  randi([1 length(new_rule)],round(config.mutRate*length(new_rule)),1);
+    new_rule(pos) = round(rand(length(pos),1));
+    genotype.rules = int8(repmat(new_rule,1,size(genotype.rules,2)));
+end 
+
 % check rules, etc.
 genotype.node = assocRules(genotype.node, genotype.rules);
 

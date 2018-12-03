@@ -1,4 +1,4 @@
-function states = assessRBNreservoir(genotype,inputSequence,config)   
+function [states,node]= assessRBNreservoir(genotype,inputSequence,config)   
 
 node = genotype.node;                       % nodes in RBN
 fHandle = genotype.RBNtype;                 % update routine
@@ -7,7 +7,7 @@ datalength = size(inputSequence,1);         % data length
 inputSequence = round((sign(inputSequence*genotype.w_in')+1)/2);
 
 % evolve network in specified update mode
-[~, states] = feval(fHandle,node,datalength,inputSequence,genotype);
+[node, states] = feval(fHandle,node,datalength,inputSequence,genotype);
 states = states(:,2:end)';      
 
 if config.leakOn      

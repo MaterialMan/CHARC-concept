@@ -47,7 +47,9 @@ for res = 1:config.popSize
             genotype(res).initialStates = round(rand(config.maxMinorUnits,1));
             genotype(res).rules = config.rules;
             genotype(res).node = initNodes(genotype(res).size,genotype(res).initialStates,zeros(genotype(res).size,1),zeros(genotype(res).size,1));
+        
         otherwise
+            
             genotype(res).node = initNodes(genotype(res).size);
             genotype(res).conn= initConnections(genotype(res).size, config.k);
             genotype(res).rules = initRules(genotype(res).size, config.k);
