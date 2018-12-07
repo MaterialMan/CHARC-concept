@@ -55,8 +55,8 @@ switch(type)
         %err = mean((systemOutput-desiredOutput(nForgetPoints+1:end,:)).^2/var(systemOutput));
         %err =((systemOutput-desiredOutput(nForgetPoints+1:end,:)).^2)'/var(systemOutput')/size(systemOutput,2);
     case 'MSE'
-        err = immse(systemOutput,desiredOutput);
-        %err = mean((systemOutput-desiredOutput).^2);
+        %err = immse(systemOutput,desiredOutput); 
+        err = mean((desiredOutput-systemOutput).^2);
         
     case 'SER'
         preDefined = [-3 -1 1 3];
@@ -241,21 +241,23 @@ switch(type)
 %             err=mean(temp_err);
 %         end
 
+    case 'hamming'
+        
+        systemOutput = round(systemOutput);
+        D = pdist2(systemOutput,desiredOutput,'hamming');
+        err = sum(diag(D))/length(systemOutput);
+
     case 'softmax'
         
-        a = exp(systemOutput)/sum(exp(systemOutput));
+     a = [];
+        for i = 1:length(systemOutput)
+            a(i,:) = exp(systemOutput(i,:))/sum(exp(systemOutput(i,:)));
+        end
         [~,predict] = max(a,[],2);
         
-        targ = [];
-        for i = 1:size(systemOutput,1)
-            for j = 1:size(systemOutput,2)
-                if desiredOutput(i,j)==1
-                    targ(i) = j;
-                end
-            end
-        end
-        
-        err = 1- F1Score(targ',predict);
+        [~,targ] = max(desiredOutput,[],2);
+       
+        err = 1- F1Score(targ,predict);
 
     otherwise
         err = compute_NRMSE(systemOutput,desiredOutput);

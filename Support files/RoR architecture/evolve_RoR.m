@@ -5,20 +5,6 @@
 % Date: 16/01/18
 
 %addpath(genpath('\RoR-master\'))
-numTests = 3;
-popSize =250;  %15          
-numEpoch = 10000;
-numMutate = 0.05; %0.3
-deme = round(popSize*0.2);   
-recRate = 0.8; %0.4
-rankedFitness = 0;
-startFull = 1;
-leakOn = 1;
-
-maxMinorUnits=200;
-maxMajorUnits=1;
-
-saveError = zeros(numTests,maxMajorUnits+2);
 
 if strcmp(dataSet,'NonLinerMap&Memory')
     figure3 = figure;

@@ -4,7 +4,7 @@ function [esnMajor]= changeMajorWeights(esnMajor,esnMinorToChange,esnMinor)
 %esnMajor.nInternalUnits = recountMajorInternalUnits(esnMinor);
 
 esnMajor.InnerConnectivity = 1/esnMajor.nInternalUnits;
-for i = 1:1%size(esnMinor,2)%esnMajor.nInternalUnits%
+for i = 1:size(esnMinor,2)%esnMajor.nInternalUnits%
     if ~isempty(esnMinor(esnMinorToChange).nInternalUnits) && ~isempty(esnMinor(i).nInternalUnits)
         internalWeights = sprand(esnMinor(esnMinorToChange).nInternalUnits, esnMinor(i).nInternalUnits, esnMajor.InnerConnectivity);
         internalWeights(internalWeights ~= 0) = ...

@@ -1,16 +1,8 @@
-function[esnMajor, esnMinor]=createDeepReservoir_extWeights(trainInputSequence,trainOutputSequence,numRes,maxMinorUnits,maxMajorUnits,startFull,mutateActiv,randConnect,ActivList)
+function genotype = createDeepReservoir_extWeights(config)
 
-if nargin < 6
-    startFull = 0;
-end
-if nargin < 7
-    mutateActiv = 0;
-end
-if nargin < 8
-    randConnect = 0;
-end
+
 %% Reservoir Parameters
-for res = 1:numRes
+for res = 1:config.numRes
     % Assign neuron/model type (options: 'plain' and 'leaky', so far... 'feedback', 'multinetwork', 'LeakyBias')
     %esnMajor(res).type = ''; %blank is standard sigmoid, subSample is only use a number of neuron states
     esnMajor(res).trainingType = 'Ridge'; %blank is psuedoinverse. Other options: Ridge, Bias,RLS

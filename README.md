@@ -1,12 +1,9 @@
 # CHARC-Framework
 MATLAB source code for the CHAracterisation of Reservoir Computers (CHARC) framework used in paper.
 
-See wiki for detailed more information.
+See wiki for detailed more information and Tutorials.
 
-*Make sure files are on the MATLAB path when using the framework.
-
-# Version 2 (branch)
-Added new reservoirs:
+Recently added new reservoirs:
 - Reservoir of Reservoirs (RoR) architecture
 - "Deep"/pipeline reservoirs
 - Ensemble reservoirs

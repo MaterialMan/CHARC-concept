@@ -1,23 +1,23 @@
 % import database - by hand
-clearvars -except database_ext database_esnMinor database_esnMajor config
+clearvars -except database_ext genotype config
 
 % define tasks
-taskList = {'NARMA10','NARMA30','Laser','NonChanEqRodan'};
+config.taskList = {'NARMA10','NARMA30','Laser','NonChanEqRodan'};
 
-for set = 1:length(taskList)
-    fprintf('\nStarted Task: %s\n',taskList{set})
+for set = 1:length(config.taskList)
+    fprintf('\nStarted Task: %s\n',config.taskList{set})
     
-    [trainInputSequence{set},trainOutputSequence{set},valInputSequence{set},valOutputSequence{set},...
-        testInputSequence{set},testOutputSequence{set},nForgetPoints{set},errType{set},queueType{set}] = selectDataset_Rodan(taskList{set});
+    [trainInputSequence,trainOutputSequence,valInputSequence,valOutputSequence,...
+        testInputSequence,testOutputSequence,nForgetPoints,errType,queueType] = selectDataset_Rodan(config.taskList{set});
     
-    parfor res = 1:length(database_esnMinor)
-        test_error(res,set) = assessESNonTask(database_esnMinor(res,:),database_esnMajor(res),...
-            trainInputSequence{set},trainOutputSequence{set},valInputSequence{set},valOutputSequence{set},testInputSequence{set},testOutputSequence{set},...
-            nForgetPoints{set},config.leakOn,errType{set},config.resType);
-        fprintf('Task: %s, Current error: %.4f, Res num: %.4f\n',taskList{set},test_error(res,set),res)%min(test_error(1:res ,set)))
+    parfor res = 1:length(genotype)
+        genotype(res) = testReservoir(genotype(res),config);
+        test_error(res,set) = genotype(res).testError;
+        %fprintf('Task: %s, Current error: %.4f, Best error found: %.4f\n',config.taskList{set},test_error(res,set),min(test_error(1:res ,set)))
+        fprintf('Task: %s, Current error: %.4f\n',config.taskList{set},test_error(res,set))
     end
     
-    fprintf('\nCompleted: %s\n',taskList{set})
+    fprintf('\nCompleted: %s\n',config.taskList{set})
 end
 
 pred_dataset.inputs = database_ext;

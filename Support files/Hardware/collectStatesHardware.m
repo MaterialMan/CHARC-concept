@@ -20,15 +20,13 @@ if strcmp(evalType, 'train')
     inputLoc =[];queue =[];
 end
 
-%inputSequence= tanh(inputSequence);
-
 [outputData,inputLoc,queue] = createOuputQueue(inputSequence,weightedInputSequence,maxInputs,queueType,genotype,inputLoc,queue);
 
 %% start session for DAQ
 if strcmp(evalType, 'train')    
      
     %Ground and collect states
-    totEval = 5;%10
+    totEval = 3;%10
     for testRep = 1:totEval
         read_session.queueOutputData([zeros(25,maxInputs);outputData; zeros(10,maxInputs)]);
         testStates(testRep,:,:) = read_session.startForeground;%startBackground;%
@@ -37,7 +35,7 @@ if strcmp(evalType, 'train')
     state_comp = testStates(:,26+nForgetPoints:end-10,:); %was 150
     
     %avg state readings
-    states = reshape(median(state_comp([3:5],:,:)),size(state_comp,2),size(state_comp,3));
+    states = reshape(median(state_comp),size(state_comp,2),size(state_comp,3));
     %states = reshape(state_comp,size(state_comp,2),size(state_comp,3));
     
 %     %temp plot
@@ -46,33 +44,19 @@ if strcmp(evalType, 'train')
 %     drawnow
     
     %calculate state variance
-%     C = combnk(1:totEval,2);
-%     stateVar = 0;
-%     for j = 1:totEval
-%         stateVar = stateVar + compute_NRMSE(reshape(state_comp(C(j,1),:,:),size(state_comp,2),size(state_comp,3)),reshape(state_comp(C(j,2),:,:),size(state_comp,2),size(state_comp,3)));
-%     end
-    
-    %second version
     C = combnk(1:totEval,2);
-    stateVar = [];
-    for j = 1:size(C,1)
-        A = reshape(state_comp(C(j,1),:,:),size(state_comp,2),size(state_comp,3));
-        B = reshape(state_comp(C(j,2),:,:),size(state_comp,2),size(state_comp,3));
-        stateVar(j,:) = sqrt(mean((A-B).^2));
+    stateVar = 0;
+    for j = 1:totEval
+        stateVar = stateVar + compute_NRMSE(reshape(state_comp(C(j,1),:,:),size(state_comp,2),size(state_comp,3)),reshape(state_comp(C(j,2),:,:),size(state_comp,2),size(state_comp,3)));
     end
     
-    subplot(1,2,1)
-    plot(stateVar')
-    drawnow
-
-    stateVarMean = median(stateVar);
 
     for i = 1:length(temp_config)
         if temp_config(i) == 1
             states(:,i) = zeros;
         end
         % remove channels with large variance
-        if stateVarMean(i) > 0.25%was 0.5%totEval%05%05
+        if stateVar(i) > 0.5%totEval%05%05
             states(:,i) = zeros;
         end
         
@@ -82,14 +66,12 @@ if strcmp(evalType, 'train')
         end
     end
     
-% %     %temp plot
-      subplot(1,2,2)
-%      plot(states)
-    plot(states)
-    colormap('gray')
-    drawnow
-
-
+%     %temp plot
+    %subplot(1,2,2)
+    %plot(states)
+%     imagesc(states)
+%     colormap('gray')
+%     drawnow
     
 else
      read_session.queueOutputData([zeros(25,maxInputs);outputData; zeros(10,maxInputs)]);
@@ -100,9 +82,6 @@ end
 
 %add inputsequence to states
 states = [states inputSequence(nForgetPoints+1:end,:)];
-
-%add non-linearity
-%states= tanh(states); 
 
 %apply leak rate
 if leakOn

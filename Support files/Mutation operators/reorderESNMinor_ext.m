@@ -1,4 +1,4 @@
-function [esnMinor, esnMajorWeights,interResScaling,count] = reorderESNMinor_ext(esnMinor,esnMajor)
+function [esnMinor, esnMajor] = reorderESNMinor_ext(esnMinor,esnMajor)
 
 %construct empty struct
 tempESNMinor =struct;
@@ -25,11 +25,11 @@ esnMinor(1:size(tempESNMinor,2)) = tempESNMinor;
 
 %cycle through and remove old connection weights
 c= esnMajor.connectWeights(~cellfun('isempty',esnMajor.connectWeights));
-esnMajorWeights = reshape(c,size(tempESNMinor,2),size(tempESNMinor,2));
+esnMajor.connectWeights = reshape(c,size(tempESNMinor,2),size(tempESNMinor,2));
 
 %update scaling?
 u= esnMajor.interResScaling(~cellfun('isempty',esnMajor.interResScaling));
-interResScaling = reshape(u,size(tempESNMinor,2),size(tempESNMinor,2));
+esnMajor.interResScaling = reshape(u,size(tempESNMinor,2),size(tempESNMinor,2));
 
 %final check of major units
-count = recountMajorInternalUnits(esnMinor);
+esnMajor.nInternalUnits = recountMajorInternalUnits(esnMinor);
