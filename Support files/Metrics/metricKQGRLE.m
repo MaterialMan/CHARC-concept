@@ -43,7 +43,7 @@ if config.use_metric (1)
     full_rank_sum = 0;
     e_rank = 1;
     for i = 1:length(s)
-        full_rank_sum = full_rank_sum +s(i);
+        full_rank_sum = full_rank_sum + s(i);
         while (tmp_rank_sum < full_rank_sum * 0.99)
             tmp_rank_sum = tmp_rank_sum + s(e_rank);
             e_rank= e_rank+1;

@@ -1,18 +1,43 @@
 
 
 f1 = figure
-v = VideoWriter('NS_2.avi');
-%database = all_search_archives{1,40};
-xlim([0 200])
-ylim([0 70])
-xlabel('KR-GR')
-ylabel('MC')
-hold on
+v = VideoWriter('NS.avi');
+database = all_databases{1,10};
 open(v);
 cnt = 1;
-for i = 1:50:length(database)
+step  = 25;
+maxMC = max(database(:,3))+5;
+set(f1,'position',[0,492,1657,456])
+
+for i = 1:step:length(database)-step
+    hold on
+    subplot(1,3,1)
+    scatter(database(i:i+step-1,1),database(i:i+step-1,2),20,i:i+step-1,'filled')
+    colorbar
+    xlabel('Kernel Rank')
+    ylabel('Generalisation Rank')
+    xlim([0 config.maxMinorUnits])
+    ylim([0 config.maxMinorUnits])
+    
+    hold on
+    subplot(1,3,2)
     title(strcat('Generation: ',num2str(i)))
-    scatter(database(i:i+50-1,1),database(i:i+50-1,2),20,i:i+50-1)
+    scatter(database(i:i+step-1,1),database(i:i+step-1,3),20,i:i+step-1,'filled')
+    colorbar
+    xlabel('Kernel Rank')
+    ylabel('Memory Capacity')
+    xlim([0 config.maxMinorUnits])
+    ylim([0 maxMC])
+    
+    hold on
+    subplot(1,3,3)
+    scatter(database(i:i+step-1,2),database(i:i+step-1,3),20,i:i+step-1,'filled')
+    colorbar
+    xlabel('Generalisation Rank')
+    ylabel('Memory Capacity')
+    xlim([0 config.maxMinorUnits])
+    ylim([0 maxMC])
+
     drawnow
     %pause(0.001)
     colormap('copper')

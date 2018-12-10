@@ -2,6 +2,14 @@
 function config = selectReservoirType(config)
 
 switch(config.resType)
+    
+    case 'ELM'
+        config.createFcn = @createELM;
+        config.assessFcn = @collectDeepStates_ELM;
+        config.mutFcn = @mutateELM;
+        config.recFcn = @recombELM;
+        config.hierarchy = 1;
+        
     case 'RoR' 
         config.createFcn = @createRoR;
         config.assessFcn = @collectDeepStates_nonIA;

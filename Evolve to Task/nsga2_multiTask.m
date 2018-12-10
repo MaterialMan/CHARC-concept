@@ -1,4 +1,4 @@
-%% Multi-Objective evolution using the Non-dominated Sorting Genetic Algorithm
+%% Multi-Objective evolution using the Non-dominated Sorting Genetic Algorithm (NSGA-II)
 % - Works with any reservoir type on the path
 % - Requires at least 2 tasks (defined in config.dataSet)
 % - parallel evaluation available through "config.parallel = 1"
@@ -7,16 +7,15 @@
 % Author: Matt Dale
 % Date:   20/11/18
 
-%function results = nsga2_multiTask
 %% Setup
 % type of network to evolve
-config.resType = 'DNA';                     % can use different hierarchical reservoirs or substrate. RoR_IA is default ESN.
-config.maxMinorUnits = 3;                   % num of nodes in subreservoirs
+config.resType = 'ELM';                     % can use different hierarchical reservoirs or substrate. RoR_IA is default ESN.
+config.maxMinorUnits = 10;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 
 %% Network details
-config.leakOn = 1;                          % add leak states
+config.leakOn = 0;                          % add leak states
 config.AddInputStates = 1;                  % add input to states
 config.regParam = 10e-5;                    % training regulariser
 config.sparseInputWeights = 0;              % use sparse inputs
@@ -26,16 +25,16 @@ config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
-config.popSize = 6;                         % large pop usually better
+config.popSize = 50;                         % large pop usually better
 config.max_generations = 20;                % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.recRate = 0.5;                       % corssover rate
 
 %% General params
+config.parallel = 1;                        % use parallel toolbox
 config.update_interval = 1;                 % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 config.save_interval = config.max_generations/2;% save at gen = saveGen
-config.parallel = 0;                        % use parallel toolbox
 saveResults = [];
 
 %% NSGA params
@@ -47,7 +46,7 @@ config.ref_points = [];
 config.num_constraints = 0;
 
 %% Get datasets
-config.dataSet = {'Laser', 'NARMA10'};       %make they have the same number of inputs and outputs
+config.dataSet = {'poleBalance', 'Iris'};       %make they have the same number of inputs and outputs
 config.num_objectives = length(config.dataSet);
 
 for n = 1:config.num_objectives

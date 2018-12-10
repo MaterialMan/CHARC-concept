@@ -1,6 +1,7 @@
-%% Evolve Substrate for specific task
-% Notes: Added extra flexibility. Can now evolve heirarchical networks and
-% graph networks with defined structures.
+%% Evolve substrate for a specific task
+% This script can be used to evolve any reservoir directly to a task. It
+% uses the steady-state Microbial Genetic Algorithm to evolve the best
+% solution.
 
 % Author: M. Dale
 % Date: 08/11/18
@@ -12,8 +13,8 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'RoR_IA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 25;                  % num of nodes in subreservoirs
+config.resType = '2dCA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 10;                  % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 config.nsga2 = 0;                           % not using NSGA
@@ -29,30 +30,33 @@ config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
-config.popSize = 100;                       % large pop better
-config.totalGens = 2000;                    % num of gens
+config.popSize = 5;                       % large pop better
+config.totalGens = 1000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
 
 %% Task parameters
-config.dataSet = 'autoencoder';                 % Task to evolve for
+config.dataSet = 'Laser';                 % Task to evolve for
+
+% get dataset 
 [config.trainInputSequence,config.trainOutputSequence,config.valInputSequence,config.valOutputSequence,...
     config.testInputSequence,config.testOutputSequence,config.nForgetPoints,config.errType,config.queueType] = selectDataset(config.dataSet);
 
+% get any additional params stored in getDataSetInfo.m 
 [config,figure3,figure4] = getDataSetInfo(config);
 
 %% general params
 config.genPrint = 10;                       % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 figure1 =figure;
-config.saveGen = 1000;                        % save at gen = saveGen
-config.parallel = 1;                        % use parallel toolbox
+config.saveGen = 1000;                      % save at gen = saveGen
+config.parallel = 0;                        % use parallel toolbox
 config.multiOffspring = 0;                  % multiple tournament selection and offspring in one cycle
 config.numSyncOffspring = config.deme;      % length of cycle/synchronisation step
 config.use_metric =[1 1 0];                 % metrics to use = [KR GR LE]
-config.record_metrics = 0;
+config.record_metrics = 0;                  % save metrics
 
 %% RUn MicroGA
 for test = 1:config.numTests
@@ -65,10 +69,11 @@ for test = 1:config.numTests
     
     rng(test,'twister');
     
+    % create initial population 
     genotype = config.createFcn(config);
     
-    %Assess Genotype
-    if config.parallel
+    %Assess population
+    if config.parallel % use parallel toolbox - faster
         parfor popEval = 1:config.popSize
             warning('off','all')
             genotype(popEval) = config.testFcn(genotype(popEval),config);
@@ -82,24 +87,26 @@ for test = 1:config.numTests
         end
     end
     
-    [best_error,best] = min([genotype.valError]);
+    % find an d print best individual
+    [best_error,best] = min([genotype.valError]);    
     fprintf('\n Starting loop... Best error = %.4f\n',best_error);
     
+    % store error that will be used as fitness in the GA
     storeError(test,1,:) = [genotype.valError];
     
+    %% start GA
     for gen = 2:config.totalGens
         
+        % define seed
         rng(gen,'twister');
         
+        % reshape stored error to compare
         cmpError = reshape(storeError(test,gen-1,:),1,size(storeError,3));
         
-        % Num of ofspring to evolve
+        % Num of offspring to evolve
         if config.multiOffspring
-            %scurr = rng;
-            %temp_seed = scurr.Seed;
-            parfor p = 1:config.numSyncOffspring
-                %rng(temp_seed+p,'twister');
-                
+
+            parfor p = 1:config.numSyncOffspring  
                 % Tournment selection - pick two individuals
                 equal = 1;
                 while(equal)
@@ -138,7 +145,7 @@ for test = 1:config.numTests
             
             % print info
             if (mod(gen,config.genPrint) == 0)
-                [best,best_indv] = min(storeError(test,gen,:));
+                [best(1),best_indv(1)] = min(storeError(test,gen,:));
                 fprintf('Gen %d, time taken: %.4f sec(s)\n Best Error: %.4f \n',gen,toc/config.genPrint,best);
                 tic;
                 
@@ -152,6 +159,7 @@ for test = 1:config.numTests
             end
             
         else
+            
             % Tournment selection - pick two individuals
             equal = 1;
             while(equal)
@@ -173,6 +181,7 @@ for test = 1:config.numTests
                 winner=indv2; loser = indv1;
             end
             
+            % Infection and mutation to get offspring
             genotype(loser) = config.recFcn(genotype(winner),genotype(loser),config);
             genotype(loser) = config.mutFcn(genotype(loser),config);
             
@@ -181,26 +190,28 @@ for test = 1:config.numTests
             
             %update errors
             storeError(test,gen,:) =  storeError(test,gen-1,:);
-            storeError(test,gen,loser) = genotype(loser).valError;%genotype(loser).valError;
+            storeError(test,gen,loser) = genotype(loser).valError;
+          %  best(gen)  = best(gen-1);
+%            best_indv(gen) = best_indv(gen-1);
             
             % print info
             if (mod(gen,config.genPrint) == 0)
-                [best,best_indv] = min(storeError(test,gen,:));
-                fprintf('Gen %d, time taken: %.4f sec(s)\n  Winner: %.4f, Loser: %.4f, Best Error: %.4f \n',gen,toc/config.genPrint,genotype(winner).valError,genotype(loser).valError,best);
+                [best(gen),best_indv(gen)] = min(storeError(test,gen,:));
+                fprintf('Gen %d, time taken: %.4f sec(s)\n  Winner: %.4f, Loser: %.4f, Best Error: %.4f \n',gen,toc/config.genPrint,genotype(winner).valError,genotype(loser).valError,best(gen));
                 tic;
                 if strcmp(config.resType,'basicCA')
                     figure(figure1)
                     imagesc(loserStates');
                 end
                 if strcmp(config.resType,'Graph')
-                    plotGridNeuron(figure1,genotype,storeError,test,best_indv,loser,config)
+                    plotGridNeuron(figure1,genotype,storeError,test,best_indv(gen),loser,config)
                 end
                 
                 if strcmp(config.resType,'BZ')
-                    plotBZ(config.BZfigure1,genotype,best_indv,loser,config)
+                    plotBZ(config.BZfigure1,genotype,best_indv(gen),loser,config)
                 end
                 if strcmp(config.dataSet,'autoencoder')
-                    plotAEWeights(figure3,figure4,config.testInputSequence,genotype(best_indv),config)
+                    plotAEWeights(figure3,figure4,config.testInputSequence,genotype(best_indv(gen)),config)
                 end
             end
         end
@@ -219,10 +230,10 @@ for test = 1:config.numTests
     
     %get metric details 
     if config.record_metrics
-    parfor popEval = 1:config.popSize
-        [~, kernel_rank(test,popEval), gen_rank(test,popEval)] = metricKQGRLE(genotype(popEval),config);
-        MC(test,popEval) = metricMemory(genotype(popEval),config);
-    end
+        parfor popEval = 1:config.popSize
+            [~, kernel_rank(test,popEval), gen_rank(test,popEval)] = metricKQGRLE(genotype(popEval),config);
+            MC(test,popEval) = metricMemory(genotype(popEval),config);
+        end
     end
 end
 

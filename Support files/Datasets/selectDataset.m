@@ -1,8 +1,4 @@
 %% Select Data Script: Generate task data sets and split data
-% Notes:
-% - All data normalised between [-0.5 0.5]
-% - Incomplete, but most datasets should work.
-
 function [trainInputSequence,trainOutputSequence,valInputSequence,valOutputSequence,...
     testInputSequence,testOutputSequence,nForgetPoints,errType,queueType] = selectDataset(inputData,preprocess)
 
@@ -133,7 +129,7 @@ switch inputData
         
         %% Pattern Recognition - using PCA to reduce dimensions maybe very useful
         
-    case 'autoencoder'
+    case 'Autoencoder'
         errType = 'MSE';
         queueType = 'simple';
         nForgetPoints = 0;
@@ -193,6 +189,7 @@ switch inputData
         outputSequence =outputSequence';
         
     case 'handDigits'
+        
         errType = 'softmax';
         queueType = 'Weighted';
         nForgetPoints =10;

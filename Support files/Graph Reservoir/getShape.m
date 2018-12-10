@@ -20,8 +20,12 @@ switch(config.substrate)
         config.N = size(config.G.Nodes,1);
         
     case 'Torus'
-        config.G = torusGraph(config.NGrid,config.self_loop,config.N_rings,config);
-        config.N = size(config.G.Nodes,1);
+        if strcmp(config.resType,'2dCA')
+            config.G =torusGraph(sqrt(config.maxMinorUnits),config.self_loop,sqrt(config.maxMinorUnits),config);
+        else
+            config.G = torusGraph(config.NGrid,config.self_loop,config.N_rings,config);
+            config.N = size(config.G.Nodes,1);
+        end
         
     case 'Barbell'
         load barbellgraph.mat

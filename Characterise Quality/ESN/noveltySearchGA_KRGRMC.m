@@ -1,6 +1,6 @@
 %% CHARC framework
 % Notes: Added extra flexibility. Can now evolve heirarchical networks and
-% graph networks with defined structures.
+% any other reservoir in the support files.
 
 % Author: M. Dale
 % Date: 07/11/18
@@ -9,8 +9,8 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = '2dCA';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 50;                   % num of nodes in subreservoirs
+config.resType = 'RoR';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 100;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -25,19 +25,23 @@ config.trainingType = 'Ridge';              %blank is psuedoinverse. Other optio
 config.AddInputStates = 0;                  %add input to states
 config.regParam = 10e-5;                    %training regulariser
 config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]
-config.trainInputSequence= [];
-config.trainOutputSequence =[];
-config.dataSet =[];
+
 config.sparseInputWeights = 0;              % use sparse inputs
 config.restricedWeight = 0;                 % restrict weights to defined values
 config.nsga2 = 0;
 config.evolvedOutputStates = 0;             %if evovled outputs are wanted
 
+% dummy variables
+config.trainInputSequence= [];
+config.trainOutputSequence =[];
+config.dataSet =[];
+
+% get addition params for reservoir type
 [config,figure3,figure4] = getDataSetInfo(config);
 
-%Evolutionary parameters
+%% Evolutionary parameters
 config.numTests = 1;                        % num of runs
-config.popSize = 150;                       % large pop better
+config.popSize = 50;                       % large pop better
 config.totalGens = 3000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
@@ -57,7 +61,7 @@ figure1 =figure;
 config.saveGen = 25;                        % save at gen = saveGen
 config.paramIndx = 1;                       % record database; start from 1
 
-%% RUn MicroGA
+%% Run MicroGA
 for tests = 1:config.numTests
     
     clearvars -except config tests storeError figure1 figure2 stats_novelty_KQ stats_novelty_MC total_space_covered all_databases
@@ -70,19 +74,21 @@ for tests = 1:config.numTests
     
     config.paramIndx=1;
     
+    % create population of reservoirs
     genotype = config.createFcn(config);
     
+    % intialise metrics
     kernel_rank=[]; gen_rank=[];
     rank_diff=[]; MC=[];
     
-    %% Evaluate population
+    %% Evaluate population and assess novelty
     parfor popEval = 1:config.popSize
         [~, kernel_rank(popEval), gen_rank(popEval)] = metricKQGRLE(genotype(popEval),config);
         MC(popEval) = metricMemory(genotype(popEval),config);
          fprintf('\n indv: %d  ',popEval);
     end
     
-    %% Create NS archive from inital pop
+    %% Create NS archive from initial population
     archive = [kernel_rank;gen_rank; MC]';
     archive_genotype = genotype;
     
@@ -97,11 +103,13 @@ for tests = 1:config.numTests
     
     cnt_no_change = 1;
     
+    % start generational loop
     for gen = 2:config.totalGens
 
         rng(gen,'twister');
               
-        % Tournment selection - pick two individuals
+        % Tournment selection - pick two individuals. Second within in deme
+        % range of the first
         equal = 1;
         while(equal)
             indv1 = randi([1 config.popSize]);
@@ -114,7 +122,7 @@ for tests = 1:config.numTests
             end
         end
         
-        %calculate distances
+        %calculate distances in behaviour space using KNN search
         pop_metrics = [kernel_rank;gen_rank;MC]';
         error_indv1 = findKNN([archive; pop_metrics],pop_metrics(indv1,:),config.k_neighbours);
         error_indv2 = findKNN([archive; pop_metrics],pop_metrics(indv2,:),config.k_neighbours);
@@ -127,31 +135,34 @@ for tests = 1:config.numTests
             winner=indv2; loser = indv1;
         end
         
-        %% Infection phase
+        %% Infection and mutation phase 
+        % mix winner and loser first
         genotype(loser) = config.recFcn(genotype(winner),genotype(loser),config);
+        % mutate offspring/loser
         genotype(loser) = config.mutFcn(genotype(loser),config);
         
-        %% Evaluate and update fitness        
+        %% Evaluate and update fitness of offspring/loser       
         [~, kernel_rank(loser), gen_rank(loser)] = metricKQGRLE(genotype(loser),config);
         MC(loser) = metricMemory(genotype(loser),config);
            
         % Store behaviours   
-        pop_metrics = [kernel_rank;gen_rank;MC]'; %abs() used but can be removed
+        pop_metrics = [kernel_rank;gen_rank;MC]'; 
         storeError(tests,gen,:) = pop_metrics(:,3); 
         
-        % all metrics for later use
+        % store all metrics for later use
         pop_metrics_ext = [kernel_rank;gen_rank;kernel_rank-gen_rank;abs(kernel_rank-gen_rank);MC]';
         
+        % calculate offsprings neighbours in behaviour space - using
+        % population and archive
         dist = findKNN([archive; pop_metrics],pop_metrics(loser,:),config.k_neighbours);
         
-        % add to search archive
+        % add offspring details to database 
         database = [database; pop_metrics(loser,:)];
         database_ext = [database_ext; pop_metrics_ext(loser,:)]; % extended database for learning phase
-        
         database_genotype = [database_genotype genotype(loser)];
 
-        %add to fitness archive
-        if  dist > config.p_min || rand < 0.001 %storeError(tests,eval,loser)
+        %add offspring to archive under conditions
+        if  dist > config.p_min || rand < 0.001 
             archive = [archive; pop_metrics(loser,:)];
             cnt_change(gen) = 1;
             cnt_no_change(gen) = 0;
@@ -162,12 +173,12 @@ for tests = 1:config.numTests
         
         %dynamically adapt p_min -- minimum novelty threshold
         if gen > config.p_min_check+1
-            if sum(cnt_no_change(gen-config.p_min_check:gen)) > config.p_min_check-1 %not changing enough
-                config.p_min = config.p_min - config.p_min*0.05;%minus 5%
-                cnt_no_change(gen-config.p_min_check:gen) = zeros;%reset
+            if sum(cnt_no_change(gen-config.p_min_check:gen)) > config.p_min_check-1 % i.e. if not changing enough
+                config.p_min = config.p_min - config.p_min*0.05; %minus 5%
+                cnt_no_change(gen-config.p_min_check:gen) = zeros; %reset
             end
-            if sum(cnt_change(gen-config.p_min_check:gen)) > 10 %too frequent
-                config.p_min = config.p_min + config.p_min*0.1; %plus 20%
+            if sum(cnt_change(gen-config.p_min_check:gen)) > 10 % i.e. is too frequent
+                config.p_min = config.p_min + config.p_min*0.1; %plus 10%
                 cnt_change(gen-config.p_min_check:gen) = zeros; %reset                
             end
         end
@@ -177,12 +188,13 @@ for tests = 1:config.numTests
             fprintf('Gen %d, time taken: %.4f sec(s)\n Winner is %d, Loser is %d \n',gen,toc/config.genPrint,winner,loser);
             fprintf('Length of archive: %d, p_min; %d \n',length(archive), config.p_min);
             tic;
-            plotSearch(figure1,archive,database,gen)
+            plotSearch(figure1,archive,database,gen)        % plot details
             if strcmp(config.resType,'Graph')
                 plotGridNeuron(figure2,genotype,storeError,tests,winner,loser,config)
             end
         end
     
+        % safe details to disk
        if mod(gen,config.saveGen) == 0
             %% ------------------------------ Save data -----------------------------------------------------------------------------------
             stats_novelty_KQ(tests,config.paramIndx,:) = [iqr(database(:,1)),mad(database(:,1)),range(database(:,1)),std(database(:,1)),var(database(:,1))];

@@ -22,14 +22,14 @@ for res = 1:config.popSize
     end
     
     genotype(res).size = config.maxMinorUnits;
-    genotype(res).Beta = 5e-7;% is the reaction rate constant; ? = 5 × 10-7 nM s-1
-    genotype(res).e = 8.8750e-11;%e is the efflux rate; e = 8.8750×10-2 nL s-1
-    genotype(res).H = 0.7849;% h the fraction of the reactor chamber that is well-mixed; h = 0.7849
-    genotype(res).V = 7.54e-9;% volume of the reactor; V = 7.54 nL
-    genotype(res).tau = 20;% time step
-    genotype(res).GateCon = repmat(2500,genotype(res).size,1); % gate concentrations, nM Units
-    genotype(res).washout = 500; %intial washout period for system
-    genotype(res).Sm0 = repmat(5.45e-6,genotype(res).size,1); %initial base concentrations, nmol
+    genotype(res).Beta = 5e-7;                      % is the reaction rate constant; ? = 5 × 10-7 nM s-1
+    genotype(res).e = 8.8750e-11;                   %e is the efflux rate; e = 8.8750×10-2 nL s-1
+    genotype(res).H = 0.7849;                       % h the fraction of the reactor chamber that is well-mixed; h = 0.7849
+    genotype(res).V = 7.54e-9;                      % volume of the reactor; V = 7.54 nL
+    genotype(res).tau = 20;                         % time step
+    genotype(res).GateCon = repmat(2500,genotype(res).size,1);      % gate concentrations, nM Units
+    genotype(res).washout = 500;                                    %intial washout period for system
+    genotype(res).Sm0 = repmat(5.45e-6,genotype(res).size,1);       %initial base concentrations, nmol
     
     %initial concentrations
     genotype(res).S0 = [1000 zeros(1,genotype(res).size-1)];
@@ -37,6 +37,8 @@ for res = 1:config.popSize
     
     genotype(res).nTotalUnits = genotype(res).size;
     genotype(res).leakRate = rand;
+    
+    % add input locations
     %     genotype(res).input_loc = zeros((genotype(res).size.^2)*3,1);
     %     genotype(res).input_loc(randperm(size(genotype(res).input_loc,1),round(randi([1 round(size(genotype(res).input_loc,1))])*genotype(res).dot_perc))) = 1;
     %     genotype(res).totalInputs = sum(genotype(res).input_loc);
