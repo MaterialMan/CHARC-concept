@@ -42,12 +42,27 @@ end
 states = [s p];
 
 states = states(genotype.washout+1:end-1,:);
-statesE = [];
-for i =  1:tau
-    statesE = [statesE states(i:tau:end,:)];
+
+if config.concatStates
+    statesE = zeros(size(inputSequence,1),tau*config.maxMinorUnits*2);
+    for i =  1:tau
+        statesE(:,((i-1)*config.maxMinorUnits*2)+1:((i-1)*config.maxMinorUnits*2)+config.maxMinorUnits*2) = states(i:tau:end,:);
+    end
+else   
+    statesE = [];
+    for i =  1:1%tau
+        statesE = [statesE states(i:tau:end,:)];
+    end
+end
+states = statesE;
+
+if config.evolvedOutputStates
+    states= states(config.nForgetPoints+1:end,logical(genotype.state_loc));
+else
+    states= states(config.nForgetPoints+1:end,:);
 end
 
-states = statesE;
+states = states./(max(states)-min(states));
 
 % check if any are NaNs and infs
 states(isnan(states)) = 0;
@@ -61,11 +76,6 @@ if config.leakOn
     states = leakStates;
 end
 
-if config.evolvedOutputStates
-    states= states(config.nForgetPoints+1:end,logical(genotype.state_loc));
-else
-    states= states(config.nForgetPoints+1:end,:);
-end
 
 if config.AddInputStates
     states = [ones(size(inputSequence(config.nForgetPoints+1:end,1))) inputSequence(config.nForgetPoints+1:end,:) states];

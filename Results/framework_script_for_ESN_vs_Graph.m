@@ -9,20 +9,17 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'Graph';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 40;                   % num of nodes in subreservoirs
-config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
 % Network details
 config.startFull = 1;                       % start with max network size
 config.alt_node_size = 0;                   % allow different network sizes
 config.multiActiv = 0;                      % use different activation funcs
-config.leakOn = 0;                          % add leak states
-config.rand_connect =1;                     %radnomise networks
+config.leakOn = 1;                          % add leak states
+config.rand_connect = 1;                     %radnomise networks
 config.activList = {'tanh';'linearNode'};   % what activations are in use when multiActiv = 1
 config.trainingType = 'Ridge';              %blank is psuedoinverse. Other options: Ridge, Bias,RLS
-config.AddInputStates = 0;                  %add input to states
+config.AddInputStates = 1;                  %add input to states
 config.regParam = 10e-5;                    %training regulariser
 config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]
 
@@ -37,29 +34,8 @@ config.trainOutputSequence =[];
 config.dataSet =[];
 
 % get addition params for reservoir type
-[config,figure3,figure4] = getDataSetInfo(config);
-
-%% Evolutionary parameters
-config.numTests = 1;                        % num of runs
-config.popSize = 200;                       % large pop better
-config.totalGens = 500;                    % num of gens
-config.mutRate = 0.1;                       % mutation rate
-config.deme_percent = 0.2;                  % speciation percentage
-config.deme = round(config.popSize*config.deme_percent);
-config.recRate = 0.5;                       % recombination rate
-config.evolveOutputWeights = 0;             % evolve rather than train
-
-% NS parameters
-config.k_neighbours = 10;                   % how many neighbours to check
-config.p_min = 3;                           % novelty threshold. Start low.
-config.p_min_check = 250;                   % change novelty threshold dynamically after "p_min_check" gens.
-
-% general params
-config.genPrint = 10;                       % gens to display achive and database
-config.startTime = datestr(now, 'HH:MM:SS');
-figure1 =figure;
-config.saveGen = 25;                        % save at gen = saveGen
-config.paramIndx = 1;                       % record database; start from 1
+config.task_num_inputs = size(config.trainInputSequence,2);
+config.task_num_outputs = size(config.trainOutputSequence,2);
 
 %% Run MicroGA
 for tests = 1:config.numTests
@@ -206,7 +182,7 @@ for tests = 1:config.numTests
             config.paramIndx = config.paramIndx+1;
             
             if strcmp(config.resType,'Graph')
-                save(strcat('substrate_',config.substrate,'_run',num2str(tests),'_gens',num2str(config.totalGens),'_Nres_',num2str(config.N),'_directed',num2str(config.directedGraph),'_self',num2str(config.self_loop),'_nSize.mat'),...
+                save(strcat('substrate_',config.substrate,'_run',num2str(tests),'_gens',num2str(config.totalGens),'_Nres_',num2str(config.N),'_directed',num2str(config.directedGraph),'_self',num2str(config.self_loop),'.mat'),...
                     'all_databases','genotype','database_ext','config','stats_novelty_KQ','stats_novelty_MC','total_space_covered','-v7.3');     
             else
                 save(strcat('Framework_substrate_',config.resType,'_run',num2str(tests),'_gens',num2str(config.totalGens),'_',num2str(config.maxMajorUnits),'Nres_',num2str(config.maxMinorUnits),'_nSize.mat'),...
@@ -215,6 +191,11 @@ for tests = 1:config.numTests
        end
     end
 end
+
+% last thing to do is remove all details except config
+config.startTime = datestr(now, 'HH:MM:SS');
+config.paramIndx = 1;                       % record database; start from 1
+clearvars -except config figure1
 
 %% fitness function
 function [avg_dist] = findKNN(metrics,Y,k_neighbours)

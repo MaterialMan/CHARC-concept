@@ -26,7 +26,7 @@ for res = 1:config.popSize
     genotype(res).e = 8.8750e-11;                   %e is the efflux rate; e = 8.8750×10-2 nL s-1
     genotype(res).H = 0.7849;                       % h the fraction of the reactor chamber that is well-mixed; h = 0.7849
     genotype(res).V = 7.54e-9;                      % volume of the reactor; V = 7.54 nL
-    genotype(res).tau = 20;                         % time step
+    genotype(res).tau = config.tau;                         % time step
     genotype(res).GateCon = repmat(2500,genotype(res).size,1);      % gate concentrations, nM Units
     genotype(res).washout = 500;                                    %intial washout period for system
     genotype(res).Sm0 = repmat(5.45e-6,genotype(res).size,1);       %initial base concentrations, nmol

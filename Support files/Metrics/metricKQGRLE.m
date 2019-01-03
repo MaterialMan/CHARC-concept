@@ -27,7 +27,7 @@ if config.use_metric (1)
     
     ui = bestUi;
     
-    inputSequence =repmat(ui(:,1),1,N);
+    inputSequence = repmat(ui(:,1),1,N);
     
     %kernel matrix - pick 'to' at halfway point
     M = config.assessFcn(genotype,inputSequence,config);

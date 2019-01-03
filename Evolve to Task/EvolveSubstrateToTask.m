@@ -13,8 +13,8 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = '2dCA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 10;                  % num of nodes in subreservoirs
+config.resType = 'DNA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 15;                  % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 config.nsga2 = 0;                           % not using NSGA
@@ -31,14 +31,14 @@ config.evolveOutputWeights = 0;             % evolve rather than train
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
 config.popSize = 5;                       % large pop better
-config.totalGens = 1000;                    % num of gens
+config.totalGens = 1;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
 
 %% Task parameters
-config.dataSet = 'Laser';                 % Task to evolve for
+config.dataSet = 'Iris';                 % Task to evolve for
 
 % get dataset 
 [config.trainInputSequence,config.trainOutputSequence,config.valInputSequence,config.valOutputSequence,...
@@ -56,7 +56,7 @@ config.parallel = 0;                        % use parallel toolbox
 config.multiOffspring = 0;                  % multiple tournament selection and offspring in one cycle
 config.numSyncOffspring = config.deme;      % length of cycle/synchronisation step
 config.use_metric =[1 1 0];                 % metrics to use = [KR GR LE]
-config.record_metrics = 0;                  % save metrics
+config.record_metrics = 1;                  % save metrics
 
 %% RUn MicroGA
 for test = 1:config.numTests
@@ -88,8 +88,8 @@ for test = 1:config.numTests
     end
     
     % find an d print best individual
-    [best_error,best] = min([genotype.valError]);    
-    fprintf('\n Starting loop... Best error = %.4f\n',best_error);
+    [best(1),best_indv(1)] = min([genotype.valError]);    
+    fprintf('\n Starting loop... Best error = %.4f\n',best);
     
     % store error that will be used as fitness in the GA
     storeError(test,1,:) = [genotype.valError];
@@ -142,10 +142,12 @@ for test = 1:config.numTests
             %update errors
             storeError(test,gen,:) =  storeError(test,gen-1,:);
             storeError(test,gen,l(ia)) = [genotype(l(ia)).valError];
+            best(gen)  = best(gen-1);
+            best_indv(gen) = best_indv(gen-1);
             
             % print info
             if (mod(gen,config.genPrint) == 0)
-                [best(1),best_indv(1)] = min(storeError(test,gen,:));
+                [best(gen),best_indv(gen)] = min(storeError(test,gen,:));
                 fprintf('Gen %d, time taken: %.4f sec(s)\n Best Error: %.4f \n',gen,toc/config.genPrint,best);
                 tic;
                 
@@ -191,19 +193,19 @@ for test = 1:config.numTests
             %update errors
             storeError(test,gen,:) =  storeError(test,gen-1,:);
             storeError(test,gen,loser) = genotype(loser).valError;
-          %  best(gen)  = best(gen-1);
-%            best_indv(gen) = best_indv(gen-1);
+            best(gen)  = best(gen-1);
+            best_indv(gen) = best_indv(gen-1);
             
             % print info
             if (mod(gen,config.genPrint) == 0)
                 [best(gen),best_indv(gen)] = min(storeError(test,gen,:));
                 fprintf('Gen %d, time taken: %.4f sec(s)\n  Winner: %.4f, Loser: %.4f, Best Error: %.4f \n',gen,toc/config.genPrint,genotype(winner).valError,genotype(loser).valError,best(gen));
                 tic;
-                if strcmp(config.resType,'basicCA')
+                if strcmp(config.resType,'basicCA') 
                     figure(figure1)
                     imagesc(loserStates');
                 end
-                if strcmp(config.resType,'Graph')
+                if strcmp(config.resType,'Graph') || strcmp(config.resType,'2dCA')
                     plotGridNeuron(figure1,genotype,storeError,test,best_indv(gen),loser,config)
                 end
                 
@@ -232,7 +234,7 @@ for test = 1:config.numTests
     if config.record_metrics
         parfor popEval = 1:config.popSize
             [~, kernel_rank(test,popEval), gen_rank(test,popEval)] = metricKQGRLE(genotype(popEval),config);
-            MC(test,popEval) = metricMemory(genotype(popEval),config);
+           % MC(test,popEval) = metricMemory(genotype(popEval),config);
         end
     end
 end

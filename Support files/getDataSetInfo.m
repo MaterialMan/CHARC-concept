@@ -31,8 +31,8 @@ end
 
 %% Bz reservoir
 if strcmp(config.resType,'BZ')
-    config.plotBZ =1;
-    config.fft = 1;
+    config.plotBZ =0;
+    config.fft = 0;
     config.BZfigure1 = figure;
     config.BZfigure2 = figure; 
 end
@@ -40,7 +40,7 @@ end
 %% Graph params
 if strcmp(config.resType,'Graph')
     
-    config.substrate= 'Torus';            % Define substrate
+    config.substrate= 'Lattice';            % Define substrate
     % Examples: 'Lattice', 'Hypercube',
     % 'Torus','L-shape','Bucky','Barbell','Ring'
     
@@ -62,13 +62,15 @@ if strcmp(config.resType,'Graph')
     config.self_loop = 1;                   % give node a loop to self.
     config.inputEval = 0;                   % add input directly to node, otherwise node takes inputs value.
     config = getShape(config);              % call function to make graph.
-    config.plot3d = 0;                      % plot graph in 3D.
     config.globalParams = 1;                % add global scaling parameters and leakrate
+    figure3= figure;
 end
 
 %% DNA reservoir
 if strcmp(config.resType,'DNA')
-    config.step_size = 1;                   %step size for ODE solver 
+    config.tau = 20;                         % settling time
+    config.step_size = 1;                   % step size for ODE solver 
+    config.concatStates = 0;                % use all states
 end
 
 %% RBN reservoir
@@ -97,7 +99,7 @@ end
 if strcmp(config.resType,'basicCA')
     % update type 
     config.RBNtype = @evolveCRBN;
-    config.mono_rule = 1;               %stick to rule rule set, individual cells cannot have different rules
+    config.mono_rule = 0;               %stick to rule rule set, individual cells cannot have different rules
     
     % Define CA connectivity
     A = ones(config.maxMinorUnits);
@@ -137,37 +139,53 @@ if strcmp(config.resType,'2dCA')
     end
     
     config.mono_rule = 1;                   %stick to rule rule set, individual cells cannot have different rules
+    config.ruleType = 'Moores';
     
     % Define CA connectivity
+    config.substrate= 'Lattice';    % Define substrate
+    config.latticeType = 'ensembleCube';        % must be 'full' for Moores and 'basic' for vonNeumann
     config.self_loop = 1;                   % give node a loop to self.
     config.directedGraph = 0;               % directed graph (i.e. weight for all directions).
-    config.substrate= 'Torus';            % Define substrate
+    config.num_ensemble = 2;                % number of lattices
     config.NGrid = config.maxMinorUnits;    % Number of nodes
     
     % substrate params
-    config.N_rings = 5;                     % used with Torus     
-    config.latticeType = 'fullLattice';        % see creatLattice.m for different types.
-    config = getShape(config);              % call function to make graph.
-    
-    config.ruleType = 'Moores';
-    config.maxMinorUnits = config.maxMinorUnits^2;
-    config.dShape = 'Torus';
-    
+    config.N_rings = config.maxMinorUnits;  % used with Torus  
+
     % define rules 
     switch(config.ruleType)
         case 'Moores'
-            base_rule = round(rand(1,2^9))';
+            switch(config.latticeType)
+                case 'fullCube'
+                    config.maxMinorUnits = config.NGrid.^3;
+%                     base_rule = round(rand(1,2^(8*3+1)))';
+                case 'fullLattice'
+                    config.maxMinorUnits = config.NGrid*config.N_rings;
+                    base_rule = round(rand(1,2^9))';
+                case 'ensembleLattice'
+                    config.maxMinorUnits = config.NGrid*config.N_rings * config.num_ensemble;
+                    base_rule = round(rand(1,2^9))';
+                case 'ensembleCube'
+                    config.maxMinorUnits = config.NGrid.^3 * config.num_ensemble;
+%                     base_rule = round(rand(1,2^(8*3+1)))';
+            end
+ 
             for i=1:config.maxMinorUnits
                 if  config.mono_rule
                     rules(:,i) = base_rule;
                 else
-                    rules(:,i) =round(rand(1,2^9))';
+                    rules(:,i) =round(rand(1,length(base_rule)))';
                 end
             end
-              
-           % config.G = torusGraph(sqrt(config.maxMinorUnits),config.self_loop,sqrt(config.maxMinorUnits),config);
-        
+            
         case 'VonNeu'
+            switch(config.latticeType)
+                case 'basicCube'
+                    config.maxMinorUnits = config.NGrid.^3;
+                case 'basicLattice'
+                    config.maxMinorUnits = config.NGrid*config.N_rings;
+            end
+            
             base_rule = round(rand(1,2^5))';
             for i=1:config.maxMinorUnits
                 if  config.mono_rule
@@ -176,9 +194,9 @@ if strcmp(config.resType,'2dCA')
                     rules(:,i) = round(rand(1,2^5))';
                 end
             end
-           % config.G = torusGraph(sqrt(config.maxMinorUnits),config.self_loop,sqrt(config.maxMinorUnits),config);
     end
       
+    config = getShape(config);              % call function to make graph.
     config.rules = initRules(rules);
 end
 
