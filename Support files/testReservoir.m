@@ -21,11 +21,11 @@ else
         
         % Calculate trained output Y
         outputSequence = statesExt*outputWeights';
-        regTrainError(i,:)  = calculateError(outputSequence,config.trainOutputSequence,config.nForgetPoints,config.errType);
+        regTrainError(i,:)  = calculateError(outputSequence,config.trainOutputSequence,config);
         
         % Calculate trained output Y
         outputValSequence = statesExtval*outputWeights';
-        regValError(i,:)  = calculateError(outputValSequence,config.valOutputSequence,config.nForgetPoints,config.errType);
+        regValError(i,:)  = calculateError(outputValSequence,config.valOutputSequence,config);
         regWeights(i,:,:) =outputWeights';
     end
     
@@ -41,6 +41,6 @@ end
 %% Evaluate on test data
 testStates = config.assessFcn(genotype,config.testInputSequence,config);
 testSequence = testStates*genotype.outputWeights;
-genotype.testError = sum(calculateError(testSequence,config.testOutputSequence,config.nForgetPoints,config.errType));
+genotype.testError = sum(calculateError(testSequence,config.testOutputSequence,config));
 
 end

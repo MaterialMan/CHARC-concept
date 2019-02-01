@@ -1,17 +1,12 @@
 %% Select Data Script: Generate task data sets and split data
-function [trainInputSequence,trainOutputSequence,valInputSequence,valOutputSequence,...
-    testInputSequence,testOutputSequence,nForgetPoints,errType,queueType] = selectDataset(inputData,preprocess)
+function [config] = selectDataset(config)
 
 scurr = rng;
 temp_seed = scurr.Seed;
 
-if nargin < 2
-    preprocess = 1;
-end
-
 rng(1,'twister');
 
-switch inputData
+switch config.dataSet
     
     %% Chaotic systems
     case 'NARMA10' %input error 4 - good task
@@ -358,7 +353,7 @@ switch inputData
         datalength = 5000;
         nForgetPoints = 25;
         train_fraction=0.5;    val_fraction=0.25;    test_fraction=0.25;
-        preprocess =0;
+        config.preprocess =0;
         
         A_in = randi([0 (2^bit)-1],datalength,1);
         B_in = randi([0 (2^bit)-1],datalength,1);
@@ -402,19 +397,8 @@ switch inputData
         %hist(in(:,1))
 end
 
-%normalise all features
-%[inputSequence, mu, sigma] = featureNormalize(inputSequence);
-
-%squash
-% if hardware
-%     for i = 1:size(inputSequence,2)
-%         if max(inputSequence(:,i)) ~= 0
-%             inputSequence(:,i) = ((inputSequence(:,i)-mean(inputSequence(:,i)))/((max(inputSequence(:,i))-min(inputSequence(:,i)))))-0.5;
-%         end
-%     end
-% end
-
-if preprocess
+%% preprocessing
+if config.preprocess
     for i = 1:size(inputSequence,2)    
         inputSequence(inputSequence(:,i) ~= 0,i) = (inputSequence(inputSequence(:,i) ~= 0,i)-mean(inputSequence(:,i)))/(max(inputSequence(:,i))-min(inputSequence(:,i)));
     end
@@ -424,6 +408,17 @@ if preprocess
     end
 end
 
+if config.discrete %choose n-bit word length if needed by adding s,w,f to func() parameters
+   
+    if config.parallel
+        config.poolobj = gcp;
+        addAttachedFiles(config.poolobj,{'bin2num.m'})
+    end
+    
+    [inputSequence, config.q] = double2binaryInputVector(inputSequence,config.nbits);
+    [outputSequence, config.q] = double2binaryInputVector(outputSequence,config.nbits);
+end
+
 [trainInputSequence,valInputSequence,testInputSequence] = ...
     split_train_test3way(inputSequence,train_fraction,val_fraction,test_fraction);
 [trainOutputSequence,valOutputSequence,testOutputSequence] = ...
@@ -431,3 +426,14 @@ end
 
 % Go back to old seed
 rng(temp_seed,'twister');
+
+% squash into structure
+config.trainInputSequence = trainInputSequence;
+config.trainOutputSequence = trainOutputSequence;
+config.valInputSequence = valInputSequence;
+config.valOutputSequence = valOutputSequence;
+config.testInputSequence = testInputSequence;
+config.testOutputSequence = testOutputSequence;
+config.nForgetPoints = nForgetPoints;
+config.errType = errType;
+config.queueType = queueType;

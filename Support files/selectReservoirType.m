@@ -16,13 +16,20 @@ switch(config.resType)
         config.mutFcn = @mutateRoR;
         config.recFcn = @recombRoR;
         config.hierarchy = 1;
-        
+         
     case 'RoR_IA'
         config.createFcn = @createRoR;
         config.assessFcn = @collectDeepStates_IA;
         config.mutFcn = @mutateRoR;
         config.recFcn = @recombRoR;
-         config.hierarchy = 1;
+        config.hierarchy = 1;
+        
+    case 'RoR_IA_delay'
+        config.createFcn = @createDelayRoR;
+        config.assessFcn = @collectDeepDelayStates_IA;
+        config.mutFcn = @mutateRoRdelay;
+        config.recFcn = @recombRoR;
+        config.hierarchy = 1;
         
     case 'Pipeline'
         config.createFcn = @createDeepReservoir_pipeline;

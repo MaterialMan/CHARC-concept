@@ -16,17 +16,17 @@ config.startFull = 1;                       % start with max network size
 config.alt_node_size = 0;                   % allow different network sizes
 config.multiActiv = 0;                      % use different activation funcs
 config.leakOn = 1;                          % add leak states
-config.rand_connect = 1;                     %radnomise networks
+config.rand_connect = 1;                    % radnomise networks
 config.activList = {'tanh';'linearNode'};   % what activations are in use when multiActiv = 1
-config.trainingType = 'Ridge';              %blank is psuedoinverse. Other options: Ridge, Bias,RLS
-config.AddInputStates = 1;                  %add input to states
-config.regParam = 10e-5;                    %training regulariser
-config.use_metric =[1 1 0];                 %metrics to use = [KR GR LE]
+config.trainingType = 'Ridge';              % blank is psuedoinverse. Other options: Ridge, Bias,RLS
+config.AddInputStates = 1;                  % add input to states
+config.regParam = 10e-5;                    % training regulariser
+config.use_metric =[1 1 0];                 % metrics to use = [KR GR LE]
 
 config.sparseInputWeights = 0;              % use sparse inputs
 config.restricedWeight = 0;                 % restrict weights to defined values
 config.nsga2 = 0;
-config.evolvedOutputStates = 0;             %if evovled outputs are wanted
+config.evolvedOutputStates = 0;             % if evovled outputs are wanted
 
 % dummy variables
 config.trainInputSequence= [];
@@ -49,6 +49,7 @@ for tests = 1:config.numTests
     rng(tests,'twister');
     
     config.paramIndx=1;
+    config.p_min = 3;
     
     % create population of reservoirs
     genotype = config.createFcn(config);
@@ -183,10 +184,10 @@ for tests = 1:config.numTests
             
             if strcmp(config.resType,'Graph')
                 save(strcat('substrate_',config.substrate,'_run',num2str(tests),'_gens',num2str(config.totalGens),'_Nres_',num2str(config.N),'_directed',num2str(config.directedGraph),'_self',num2str(config.self_loop),'.mat'),...
-                    'all_databases','genotype','database_ext','config','stats_novelty_KQ','stats_novelty_MC','total_space_covered','-v7.3');     
+                    'all_databases','genotype','database_ext','config','stats_novelty_KQ','stats_novelty_MC','total_space_covered','database_genotype' ,'-v7.3');     
             else
                 save(strcat('Framework_substrate_',config.resType,'_run',num2str(tests),'_gens',num2str(config.totalGens),'_',num2str(config.maxMajorUnits),'Nres_',num2str(config.maxMinorUnits),'_nSize.mat'),...
-                    'all_databases','genotype','database_ext','config','stats_novelty_KQ','stats_novelty_MC','total_space_covered','-v7.3');
+                    'all_databases','genotype','database_ext','config','stats_novelty_KQ','stats_novelty_MC','total_space_covered','database_genotype','-v7.3');
             end
        end
     end

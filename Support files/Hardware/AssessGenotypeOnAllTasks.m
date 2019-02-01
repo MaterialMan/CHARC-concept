@@ -5,8 +5,8 @@ rng(1,'twister');
 
 %define tasks
 for set = 1:length(taskList)
-    [trainInputSequence{set},trainOutputSequence{set},valInputSequence{set},valOutputSequence{set},...
-        testInputSequence{set},testOutputSequence{set},nForgetPoints{set},errType{set},queueType{set}] = selectDataset(taskList{set},config.hardware_scaling);%deepSelectData(dataSet, [] ,[]); %NonChanEq has extra input
+    config.dataSet = taskList{set};
+    [data{set}] = selectDataset(config);
 end
 
 if config.useMetrics
@@ -33,14 +33,14 @@ for test= 1:size(genotype,1)
     
     for taskSet = 1:length(taskList)
         
-        trainInput= trainInputSequence{taskSet};
-        trainOutput= trainOutputSequence{taskSet};
-        valInput= valInputSequence{taskSet};
-        valOutput = valOutputSequence{taskSet};
-        testInput= testInputSequence{taskSet};
-        testOutput= testOutputSequence{taskSet};
+        trainInput= data{taskSet}.trainInputSequence;
+        trainOutput= data{taskSet}.trainOutputSequence;
+        valInput= data{taskSet}.valInputSequence;
+        valOutput = data{taskSet}.valOutputSequence;
+        testInput= data{taskSet}.testInputSequence;
+        testOutput= data{taskSet}.testOutputSequence;
         
-        switch (queueType{taskSet})
+        switch (data{taskSet}.queueType)
             case 'Weighted'
                 numInputs = size(trainInput,2);
                 inputWeights = (2*rand(config.num_electrodes/2, numInputs)-1)/12;
@@ -55,12 +55,12 @@ for test= 1:size(genotype,1)
         
         % training data
         [statesExt,inputLoc,queue] = collectStatesHardware('train',switch_session, read_session, testGenotype, ...
-            trainInput,nForgetPoints{taskSet},(config.num_electrodes/2),queueType{taskSet},...
+            trainInput,data{taskSet}.nForgetPoints,(config.num_electrodes/2),data{taskSet}.queueType,...
             weightedTrainSequence(),[],[],config.leakOn);
         
         % val data
         statesExtval = collectStatesHardware('val',switch_session, read_session, testGenotype, ...
-            valInput,nForgetPoints{taskSet},(config.num_electrodes/2),queueType{taskSet},...
+            valInput,data{taskSet}.nForgetPoints,(config.num_electrodes/2),data{taskSet}.queueType,...
             weightedValSequence(),inputLoc,queue,config.leakOn);
         
         % Find best reg parameter
@@ -71,15 +71,15 @@ for test= 1:size(genotype,1)
         for j = 1:length(regParam)
             
             %Train: tanspose is inversed compared to equation
-            outputWeights = trainOutput(nForgetPoints{taskSet}+1:end,:)'*statesExt*inv(statesExt'*statesExt + regParam(j)*eye(size(statesExt'*statesExt)));
+            outputWeights = trainOutput(data{taskSet}.nForgetPoints+1:end,:)'*statesExt*inv(statesExt'*statesExt + regParam(j)*eye(size(statesExt'*statesExt)));
             
             % Calculate trained output Y
             outputSequence = statesExt*outputWeights';
-            regTrainError(j,:)  = calculateError(outputSequence,trainOutput,nForgetPoints{taskSet},errType{taskSet});
+            regTrainError(j,:)  = calculateError(outputSequence,trainOutput,data{taskSet}.nForgetPoints,data{taskSet}.errType);
             
             % Calculate trained output Y
             outputValSequence = statesExtval*outputWeights';
-            regValError(j,:)  = calculateError(outputValSequence,valOutput,nForgetPoints{taskSet},errType{taskSet});
+            regValError(j,:)  = calculateError(outputValSequence,valOutput,data{taskSet}.nForgetPoints,data{taskSet}.errType);
             regWeights(j,:,:) =outputWeights;
         end
         
@@ -90,7 +90,7 @@ for test= 1:size(genotype,1)
         
         %% Evaluate on test data
         testStates = collectStatesHardware('test',switch_session, read_session, testGenotype, ...
-            testInput,nForgetPoints{taskSet},(config.num_electrodes/2),queueType{taskSet},...
+            testInput,data{taskSet}.nForgetPoints,(config.num_electrodes/2),data{taskSet}.queueType,...
             weightedTestSequence,inputLoc,queue,config.leakOn);
         
         testSequence = testStates*testWeights';
@@ -103,7 +103,7 @@ for test= 1:size(genotype,1)
             hold off
             drawnow
         end
-        testError(test,taskSet) = calculateError(testSequence,testOutput,nForgetPoints{taskSet},errType{taskSet});
+        testError(test,taskSet) = calculateError(testSequence,testOutput,data{taskSet}.nForgetPoints,data{taskSet}.errType);
         
         fprintf('Task: %s,  Child test error = %.4f\n',taskList{taskSet},testError(test,taskSet))
         

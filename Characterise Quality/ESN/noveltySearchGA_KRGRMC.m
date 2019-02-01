@@ -101,7 +101,9 @@ for tests = 1:config.numTests
 
     fprintf('Processing took: %.4f sec, Starting GA \n',toc)
     
+    % reset variables
     cnt_no_change = 1;
+    config.p_min = 3;
     
     % start generational loop
     for gen = 2:config.totalGens

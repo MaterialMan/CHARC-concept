@@ -13,11 +13,12 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'DNA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 15;                  % num of nodes in subreservoirs
+config.resType = 'RoR_IA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 25;                  % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 config.nsga2 = 0;                           % not using NSGA
+config.parallel = 0;                        % use parallel toolbox
 
 %% Network details
 config.leakOn = 0;                          % add leak states
@@ -29,20 +30,22 @@ config.evolvedOutputStates = 0;             % sub-sample the states to produce o
 config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Evolutionary parameters
-config.numTests = 1;                        % num of runs
-config.popSize = 5;                       % large pop better
-config.totalGens = 1;                    % num of gens
+config.numTests = 10;                        % num of runs
+config.popSize = 100;                       % large pop better
+config.totalGens = 2000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
 
 %% Task parameters
-config.dataSet = 'Iris';                 % Task to evolve for
+config.dataSet = 'NARMA10';                 % Task to evolve for
+config.discrete = 0;               % binary input for discrete systems
+config.nbits = 16;                       % if using binary/discrete systems 
+config.preprocess = 1;                   % basic preprocessing, e.g. scaling and mean variance
 
 % get dataset 
-[config.trainInputSequence,config.trainOutputSequence,config.valInputSequence,config.valOutputSequence,...
-    config.testInputSequence,config.testOutputSequence,config.nForgetPoints,config.errType,config.queueType] = selectDataset(config.dataSet);
+[config] = selectDataset(config);
 
 % get any additional params stored in getDataSetInfo.m 
 [config,figure3,figure4] = getDataSetInfo(config);
@@ -51,12 +54,11 @@ config.dataSet = 'Iris';                 % Task to evolve for
 config.genPrint = 10;                       % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 figure1 =figure;
-config.saveGen = 1000;                      % save at gen = saveGen
-config.parallel = 0;                        % use parallel toolbox
+config.saveGen = 2000;                      % save at gen = saveGen
 config.multiOffspring = 0;                  % multiple tournament selection and offspring in one cycle
 config.numSyncOffspring = config.deme;      % length of cycle/synchronisation step
 config.use_metric =[1 1 0];                 % metrics to use = [KR GR LE]
-config.record_metrics = 1;                  % save metrics
+config.record_metrics = 0;                  % save metrics
 
 %% RUn MicroGA
 for test = 1:config.numTests

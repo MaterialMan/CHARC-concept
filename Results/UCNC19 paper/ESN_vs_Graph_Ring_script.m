@@ -1,4 +1,4 @@
-%% Script to run structured reservoir (graph) tests: Lattice type
+%% Script to run structured reservoir (graph) tests: Ring topolgy type
 
 % Experiment: Compare ESNs to neuronal graphs with defined structures at different network scales.
 
@@ -16,20 +16,17 @@ clear
 clc
 
 % Move to folder:
-cd 'D:\Git\branches\Version_2\Results\Lattice vs ESN'
+cd 'D:\Git\branches\Version_2\Results'
 
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%% Lattices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%% Ring topology %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 config.resType = 'Graph';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
 figure1 =figure;
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config.self_loop = 1;                   % give node a loop to self.
 
-config.substrate= 'Lattice';            % Define substrate
+config.substrate = 'Ring';            % Define substrate
 % Examples: 'Lattice', 'Hypercube',
 % 'Torus','L-shape','Bucky','Barbell','Ring'
- 
-config.num_ensemble = 1;                % number of lattices
 
 % substrate params
 config.latticeType = 'fullLattice';        % see creatLattice.m for different types.
@@ -42,9 +39,10 @@ config.plotStates = 0;                  % plot states in real-time.
 config.nearest_neighbour = 0;           % choose radius of nearest neighbour, or set to 0 for direct neighbour.
 config.inputEval = 0;                   % add input directly to node, otherwise node takes inputs value.
 config.globalParams = 1;                % add global scaling parameters and leakrate
+config.num_ensemble = 1;                % number of lattices
 
 %% Evolutionary parameters
-config.numTests = 10;                        % num of runs
+config.numTests = 1;                        % num of runs
 config.popSize = 200;                       % large pop better
 config.totalGens = 2000;                    % num of gens
 config.mutRate = 0.2;                       % mutation rate
@@ -65,68 +63,68 @@ config.startTime = datestr(now, 'HH:MM:SS');
 config.saveGen = 200;                        % save at gen = saveGen
 config.paramIndx = 1;                       % record database; start from 1
 
-%% Directed
-config.directedGraph = 1;               % directed graph (i.e. weight for all directions).
+% %% Directed
+ config.directedGraph = 1;               % directed graph (i.e. weight for all directions).
+% 
+% % size = 25
+% config.maxMinorUnits = 25;                   % num of nodes in subreservoirs
+% config.NGrid = config.maxMinorUnits;    % Number of nodes
+% config = getShape(config);
+% framework_script_for_ESN_vs_Graph
 
-% size = 25
-config.maxMinorUnits = 5;                   % num of nodes in subreservoirs
+% % size = 50
+config.maxMinorUnits = 50;                   % num of nodes in subreservoirs
 config.NGrid = config.maxMinorUnits;    % Number of nodes
 config = getShape(config);
 framework_script_for_ESN_vs_Graph
 
-% size = 50
-config.maxMinorUnits = 7;                   % num of nodes in subreservoirs
+% % size = 100
+% config.maxMinorUnits = 100;                   % num of nodes in subreservoirs
+% config.NGrid = config.maxMinorUnits;    % Number of nodes
+% config = getShape(config);
+% framework_script_for_ESN_vs_Graph
+% 
+% % size = 200
+% config.maxMinorUnits = 200;                   % num of nodes in subreservoirs
+% config.NGrid = config.maxMinorUnits;    % Number of nodes
+% config = getShape(config);
+% framework_script_for_ESN_vs_Graph
+% 
+% % size = 400
+% config.maxMinorUnits = 400;                   % num of nodes in subreservoirs
+% config.NGrid = config.maxMinorUnits;    % Number of nodes
+% config = getShape(config);
+% framework_script_for_ESN_vs_Graph
+% 
+% %% Undirected
+ config.directedGraph = 0;               % directed graph (i.e. weight for all directions).
+% 
+% % size = 25
+% config.maxMinorUnits = 25;                   % num of nodes in subreservoirs
+% config.NGrid = config.maxMinorUnits;    % Number of nodes
+% config = getShape(config);
+% framework_script_for_ESN_vs_Graph
+ 
+% % size = 50
+config.maxMinorUnits = 50;                   % num of nodes in subreservoirs
 config.NGrid = config.maxMinorUnits;    % Number of nodes
 config = getShape(config);
 framework_script_for_ESN_vs_Graph
 
-% size = 100
-config.maxMinorUnits = 10;                   % num of nodes in subreservoirs
-config.NGrid = config.maxMinorUnits;    % Number of nodes
-config = getShape(config);
-framework_script_for_ESN_vs_Graph
-
-% size = 200
-config.maxMinorUnits = 14;                   % num of nodes in subreservoirs
-config.NGrid = config.maxMinorUnits;    % Number of nodes
-config = getShape(config);
-framework_script_for_ESN_vs_Graph
+% % size = 100
+% config.maxMinorUnits = 100;                   % num of nodes in subreservoirs
+% config.NGrid = config.maxMinorUnits;    % Number of nodes
+% config = getShape(config);
+% framework_script_for_ESN_vs_Graph
+% 
+% % size = 200
+% config.maxMinorUnits = 200;                   % num of nodes in subreservoirs
+% config.NGrid = config.maxMinorUnits;    % Number of nodes
+% config = getShape(config);
+% framework_script_for_ESN_vs_Graph
 
 % size = 400
-config.maxMinorUnits = 20;                   % num of nodes in subreservoirs
-config.NGrid = config.maxMinorUnits;    % Number of nodes
-config = getShape(config);
-framework_script_for_ESN_vs_Graph
-
-%% Undirected
-config.directedGraph = 0;                     % directed graph (i.e. weight for all directions).
-
-% size = 25
-config.maxMinorUnits = 5;                   % num of nodes in subreservoirs
-config.NGrid = config.maxMinorUnits;    % Number of nodes
-config = getShape(config);
-framework_script_for_ESN_vs_Graph
-
-% size = 50
-config.maxMinorUnits = 7;                   % num of nodes in subreservoirs
-config.NGrid = config.maxMinorUnits;    % Number of nodes
-config = getShape(config);
-framework_script_for_ESN_vs_Graph
-
-% size = 100
-config.maxMinorUnits = 10;                   % num of nodes in subreservoirs
-config.NGrid = config.maxMinorUnits;    % Number of nodes
-config = getShape(config);
-framework_script_for_ESN_vs_Graph
-
-% size = 200
-config.maxMinorUnits = 14;                   % num of nodes in subreservoirs
-config.NGrid = config.maxMinorUnits;    % Number of nodes
-config = getShape(config);
-framework_script_for_ESN_vs_Graph
-
-% size = 400
-config.maxMinorUnits = 20;                   % num of nodes in subreservoirs
-config.NGrid = config.maxMinorUnits;    % Number of nodes
-config = getShape(config);
-framework_script_for_ESN_vs_Graph
+% config.maxMinorUnits = 400;                   % num of nodes in subreservoirs
+% config.NGrid = config.maxMinorUnits;    % Number of nodes
+% config = getShape(config);
+% framework_script_for_ESN_vs_Graph

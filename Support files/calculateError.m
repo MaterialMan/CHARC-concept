@@ -1,15 +1,22 @@
-function [err] = calculateError(systemOutput,desiredOutput,nForgetPoints,type)
+function [err] = calculateError(systemOutput,desiredOutput,config)
 
 if size(systemOutput,1) == size(desiredOutput,1)
-    nForgetPoints =0;
+    config.nForgetPoints = 0;
 elseif size(systemOutput,1) > size(desiredOutput,1)
-    systemOutput = systemOutput(nForgetPoints+1:end,:);
+    systemOutput = systemOutput(config.nForgetPoints+1:end,:);
 else
-    desiredOutput = desiredOutput(nForgetPoints+1:end,:);
+    desiredOutput = desiredOutput(config.nForgetPoints+1:end,:);
 end
 
+if config.discrete
+    desiredOutput = binaryVector2doubleOutput(desiredOutput,config.q,config.nbits);
+    systemOutput = binaryVector2doubleOutput(round((1+systemOutput)/2),config.q,config.nbits);
+end
+
+%round((1+systemOutput)/2)
+
 % final measured error type
-switch(type)
+switch(config.errType)
     
     case 'mae'
         err = desiredOutput-systemOutput;

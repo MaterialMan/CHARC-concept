@@ -1,4 +1,4 @@
-function[statesExt] = collectDeepStates_IA(genotype,inputSequence,config)
+function[statesExt] = collectDeepDelayStates_IA(genotype,inputSequence,config)
 
 %% Collect states for plain ESN
 for i= 1:genotype.nInternalUnits
@@ -14,14 +14,16 @@ if iscell(genotype.reservoirActivationFunction)
     B(:) = {'linearNode'};
 
 end
-
+    
 %equation: x(n) = f(Win*u(n) + S)
 for i= 1:genotype.nInternalUnits
     temp_states = [];
-    for n = 2:length(inputSequence(:,1))
+    for n = genotype.esnMinor(i).Dmax+2:length(inputSequence(:,1))
         for k= 1:genotype.nInternalUnits
-            x{i}(n,:) = x{i}(n,:) + (genotype.connectWeights{i,k}*states{k}(n-1,:)')';
+            x{i}(n,:) = x{i}(n,:) + ((genotype.connectWeights{i,k}*states{k}(n-1,:)')');
         end
+        
+        x{i}(n,:) = x{i}(n,:) + genotype.esnMinor(i).delayWeights*states{k}(n-genotype.esnMinor(i).Dw,:);
         
         if iscell(genotype.reservoirActivationFunction)
             tempstates_tanh = feval('tanh',((genotype.esnMinor(i).inputWeights*genotype.esnMinor(i).inputScaling)*([genotype.esnMinor(i).inputShift inputSequence(n,:)])')+x{i}(n,:)');
@@ -39,7 +41,6 @@ for i= 1:genotype.nInternalUnits
     end
     
 end
-
 
 if config.leakOn
     for i= 1:genotype.nInternalUnits

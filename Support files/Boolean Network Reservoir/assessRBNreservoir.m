@@ -4,18 +4,15 @@ node = genotype.node;                       % nodes in RBN
 fHandle = genotype.RBNtype;                 % update routine
 datalength = size(inputSequence,1);         % data length
 
-inputSequence = round((sign(inputSequence*genotype.w_in')+1)/2);
+% multiply by input weights
+inputSequence = round((1+sign(inputSequence*genotype.w_in'))/2);
 
 % evolve network in specified update mode
 [node, states] = feval(fHandle,node,datalength,inputSequence,genotype);
 states = states(:,2:end)';      
 
 if config.leakOn      
-    leakStates = zeros(size(states));
-    for n = 2:size(states,1)
-        leakStates(n,:) = (1-genotype.leakRate)*leakStates(n-1,:)+ genotype.leakRate*states(n,:);
-    end
-    states = leakStates;
+    states = getLeakStates(states,genotype,config);
 end
 
 if config.evolvedOutputStates
