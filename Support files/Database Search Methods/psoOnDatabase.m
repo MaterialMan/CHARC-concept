@@ -1,5 +1,5 @@
 %% Find best performances based on metrics using PSO - evaluate on tasks
-function [final_error, final_metrics,output] =  psoOnDatabase(config,database,genotype)
+function [final_error, final_metrics, best_indv, output] =  psoOnDatabase(config,database,genotype)
 
 rng(config.rngState,'twister');
 config.track_pos = [];
@@ -17,6 +17,7 @@ hb= length(database);%max(database);
 
 [metrics_pos,final_error,~,output] = particleswarm(fun,nvars,lb,hb,options);
 
+best_indv = round(metrics_pos);
 final_metrics = database(round(metrics_pos),:);
 
     function y = getError(x)
@@ -66,7 +67,7 @@ final_metrics = database(round(metrics_pos),:);
             
             % highlight top 5 locations
             %scatter(config.track_pos(top5_indx(1:5),C(i,1)),config.track_pos(top5_indx(1:5),C(i,2)),20,[1 0 0],'filled')
-              scatter(database(config.track_pos(top5_indx(1:5)),C(i,1)),database(config.track_pos(top5_indx(1:5)),C(i,2)),20,[1 0 0],'filled')
+            scatter(database(config.track_pos(top5_indx(1:5)),C(i,1)),database(config.track_pos(top5_indx(1:5)),C(i,2)),20,[1 0 0],'filled')
             
               
             % show swarm as blue
@@ -75,6 +76,7 @@ final_metrics = database(round(metrics_pos),:);
             
             xlabel(config.metrics(C(i,1)))
             ylabel(config.metrics(C(i,2)))
+            legend({'All reservoirs','Evaluated','Top 5','Swarm'})
             colormap('copper')
         end
         
