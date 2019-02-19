@@ -3,7 +3,7 @@ MATLAB source code for the CHAracterisation of Reservoir Computers (CHARC) frame
 
 See wiki for detailed more information and Tutorials.
 
-Reservoirs to test:
+## Reservoirs to test
 - Echo State Networks
 - Reservoir of Reservoirs (RoR) architecture
 - "Deep"/pipeline reservoirs
@@ -23,25 +23,25 @@ Reservoirs to test:
 * Ising model 
 * Nuclear Magnetic Resonance (NMR) reservoir
 
-All these work with:
+### All reservoirs work with:
 - CHARC Framework
 - Evolve reservoir directly to task
 - Multi-objective(task) evolution using NSGA-II
 
-Tasks added recently (check out selectDataset.m):
+## Tasks added recently (check out selectDataset.m):
 - Pole balancing: inverted pendulum, doube-pole inverted pendulum, swinging pendulum
 - Autoencoder
 - N-bit adders
 - Evolved output layer
 - New tasks can be added via switch statement in "selectDataset.m"
 
-Plots:
+## Plots
 - behaviourGUI: to visualise parameter-behaviour relationship and structure (in some cases)
 
-Metrics
+## Metrics
 - Added a simple metric for Entropy (may need refining) 
 - New metrics can be added to "getVirtualMetrics.m" switch statement and included in CHARC via "config.metrics = {'KR','GR','MC','Entropy',...};
 
-Database methods:
+## Database methods
 - Added particle swarm optimisation (PSO) to search within the database for specific tasks (including multi-task). Instead of evaluating the whole database for a task, you can simply find the best performing reservoir in the database for a task via PSO. This results in far fewer evaluations than evaluating the whole database.
 
