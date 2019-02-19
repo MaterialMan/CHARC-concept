@@ -6,7 +6,7 @@ function pred_dataset = assessDBonTasks(config,genotype,database_ext)
 % Example: config.taskList = {'NARMA10','NARMA30','Laser','NonChanEqRodan'};
 
 for set = 1:length(config.taskList)
-    fprintf('\nStarted Task: %s\n',config.taskList{set})
+    %fprintf('\nStarted Task: %s\n',config.taskList{set})
     
     % get datasets
     config.dataSet = config.taskList{set};
@@ -15,10 +15,10 @@ for set = 1:length(config.taskList)
     parfor res = 1:length(genotype)
         genotype(res) = config.testFcn(genotype(res),config);
         test_error(res,set) = genotype(res).testError;
-        fprintf('Task: %s, Current error: %.4f\n',config.taskList{set},test_error(res,set))
+        %fprintf('Task: %s, Current error: %.4f\n',config.taskList{set},test_error(res,set))
     end
     
-    fprintf('\nCompleted: %s\n',config.taskList{set})
+    %fprintf('\nCompleted: %s\n',config.taskList{set})
 end
 
 pred_dataset.inputs = database_ext;

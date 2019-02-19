@@ -3,14 +3,17 @@
 % any other reservoir in the support files.
 
 % Author: M. Dale
-% Date: 07/11/18
+% Date: 18/02/19
 clear
+% add all subfolders to the path --> make all functions in subdirectories available
+% addpath(genpath(pwd));
+
 rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'RoR';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 25;                   % num of nodes in subreservoirs
+config.resType = 'RoR_IA';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 50;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -24,7 +27,7 @@ config.activList = {'tanh';'linearNode'};   % what activations are in use when m
 config.trainingType = 'Ridge';              %blank is psuedoinverse. Other options: Ridge, Bias,RLS
 config.AddInputStates = 0;                  %add input to states
 config.regParam = 10e-5;                    %training regulariser
-config.use_metric =[1 1 1];                 %metrics to use = [KR GR LE]
+config.metrics = {'KR','GR','MC','Entropy'}; % metrics to use (and order of metrics)
 
 config.sparseInputWeights = 0;              % use sparse inputs
 config.restricedWeight = 0;                 % restrict weights to defined values
@@ -51,8 +54,9 @@ config.evolveOutputWeights = 0;             % evolve rather than train
 
 % NS parameters
 config.k_neighbours = 10;                   % how many neighbours to check
-config.p_min = 3;                           % novelty threshold. Start low.
+config.p_min_start = 3;                           % novelty threshold. Start low.
 config.p_min_check = 250;                   % change novelty threshold dynamically after "p_min_check" gens.
+
 
 % general params
 config.genPrint = 10;                       % gens to display achive and database
@@ -78,32 +82,27 @@ for tests = 1:config.numTests
     genotype = config.createFcn(config);
     
     % intialise metrics
-    kernel_rank=[]; gen_rank=[];
-    rank_diff=[]; MC=[];
+    metrics = [];
     
     %% Evaluate population and assess novelty
     parfor popEval = 1:config.popSize
-        [gen_rank(popEval), kernel_rank(popEval), ~] = metricKQGRLE(genotype(popEval),config);
-        MC(popEval) = metricMemory(genotype(popEval),config);
+        metrics(popEval,:) = getVirtualMetrics(genotype(popEval),config);
          fprintf('\n indv: %d  ',popEval);
     end
     
     %% Create NS archive from initial population
-    archive = [kernel_rank;gen_rank; MC]';
+    archive = metrics;
     archive_genotype = genotype;
     
     % Add all search points to db
-    database = [kernel_rank;gen_rank; MC]';
-    database_ext = [kernel_rank;gen_rank;kernel_rank-gen_rank;abs(kernel_rank-gen_rank); MC]';
-    database_genotype = genotype;
-            
-    storeError(tests,1,:) = archive(:,3); 
+    database = metrics;
+    database_genotype = genotype;     
 
     fprintf('Processing took: %.4f sec, Starting GA \n',toc)
     
     % reset variables
     cnt_no_change = 1;
-    config.p_min = 3;
+    config.p_min = config.p_min_start;
     
     % start generational loop
     for gen = 2:config.totalGens
@@ -125,7 +124,7 @@ for tests = 1:config.numTests
         end
         
         %calculate distances in behaviour space using KNN search
-        pop_metrics = [kernel_rank;gen_rank;MC]';
+        pop_metrics = metrics;
         error_indv1 = findKNN([archive; pop_metrics],pop_metrics(indv1,:),config.k_neighbours);
         error_indv2 = findKNN([archive; pop_metrics],pop_metrics(indv2,:),config.k_neighbours);
              
@@ -144,15 +143,10 @@ for tests = 1:config.numTests
         genotype(loser) = config.mutFcn(genotype(loser),config);
         
         %% Evaluate and update fitness of offspring/loser       
-        [gen_rank(loser), kernel_rank(loser), ~] = metricKQGRLE(genotype(loser),config);
-        MC(loser) = metricMemory(genotype(loser),config);
+        metrics(loser,:)= getVirtualMetrics(genotype(loser),config);
            
         % Store behaviours   
-        pop_metrics = [kernel_rank;gen_rank;MC]'; 
-        storeError(tests,gen,:) = pop_metrics(:,3); 
-        
-        % store all metrics for later use
-        pop_metrics_ext = [kernel_rank;gen_rank;kernel_rank-gen_rank;abs(kernel_rank-gen_rank);MC]';
+        pop_metrics = metrics;       
         
         % calculate offsprings neighbours in behaviour space - using
         % population and archive
@@ -160,7 +154,6 @@ for tests = 1:config.numTests
         
         % add offspring details to database 
         database = [database; pop_metrics(loser,:)];
-        database_ext = [database_ext; pop_metrics_ext(loser,:)]; % extended database for learning phase
         database_genotype = [database_genotype genotype(loser)];
 
         %add offspring to archive under conditions
@@ -190,7 +183,7 @@ for tests = 1:config.numTests
             fprintf('Gen %d, time taken: %.4f sec(s)\n Winner is %d, Loser is %d \n',gen,toc/config.genPrint,winner,loser);
             fprintf('Length of archive: %d, p_min; %d \n',length(archive), config.p_min);
             tic;
-            plotSearch(figure1,archive,database,gen)        % plot details
+            plotSearch(figure1,database,gen,config)        % plot details
 %             if strcmp(config.resType,'Graph')
 %                 plotGridNeuron(figure3,genotype,storeError,tests,winner,loser,config)
 %             end
@@ -199,20 +192,17 @@ for tests = 1:config.numTests
         % safe details to disk
        if mod(gen,config.saveGen) == 0
             %% ------------------------------ Save data -----------------------------------------------------------------------------------
-            stats_novelty_KQ(tests,config.paramIndx,:) = [iqr(database(:,1)),mad(database(:,1)),range(database(:,1)),std(database(:,1)),var(database(:,1))];
-            stats_novelty_MC(tests,config.paramIndx,:) = [iqr(database(:,2)),mad(database(:,2)),range(database(:,2)),std(database(:,2)),var(database(:,2))];
-            
-            total_space_covered(tests,config.paramIndx) = measureSearchSpace({database},config.maxMinorUnits*config.maxMajorUnits);
+            [total_space_covered(tests,config.paramIndx),~]= measureSearchSpace(database);
             
             all_databases{tests,config.paramIndx} = database;
             config.paramIndx = config.paramIndx+1;
             
             if strcmp(config.resType,'Graph')
                 save(strcat('substrate_',config.substrate,'_run',num2str(tests),'_gens',num2str(config.totalGens),'_Nres_',num2str(config.N),'_directed',num2str(config.directedGraph),'_self',num2str(config.self_loop),'_nSize.mat'),...
-                    'all_databases','genotype','database_ext','config','stats_novelty_KQ','stats_novelty_MC','total_space_covered','-v7.3');     
+                    'all_databases','genotype','config','total_space_covered','-v7.3');     
             else
                 save(strcat('Framework_substrate_',config.resType,'_run',num2str(tests),'_gens',num2str(config.totalGens),'_',num2str(config.maxMajorUnits),'Nres_',num2str(config.maxMinorUnits),'_nSize.mat'),...
-                    'all_databases','genotype','database_ext','config','stats_novelty_KQ','stats_novelty_MC','total_space_covered','-v7.3');
+                    'all_databases','genotype','config','total_space_covered','-v7.3');
             end
        end
     end
@@ -224,50 +214,29 @@ function [avg_dist] = findKNN(metrics,Y,k_neighbours)
 avg_dist = mean(D);
 end
 
-function plotSearch(figureHandle,archive,database, gen)
+function plotSearch(figureHandle,database, gen,config)
 
-%archive
-set(0,'CurrentFigure',figureHandle);
-subplot(2,3,1)
-scatter(archive(:,1),archive(:,2),20,1:length(archive),'filled')
+set(0,'currentFigure',figureHandle)
 title(strcat('Gen:',num2str(gen)))
-xlabel('KR')
-ylabel('GR')
-colormap('copper')
+v = 1:length(config.metrics);
+C = nchoosek(v,2);
 
-subplot(2,3,2)
-scatter(archive(:,1),archive(:,3),20,1:length(archive),'filled')
-xlabel('KR')
-ylabel('MC')
-colormap('copper')
-title('Fitness Archive')
+if size(C,1) > 3
+    num_plot_x = size(C,1)/2;
+    num_plot_y = 2;
+else
+    num_plot_x = 3;
+    num_plot_y = 1;
+end
 
-subplot(2,3,3)
-scatter(archive(:,2),archive(:,3),20,1:length(archive),'filled')
-xlabel('GR')
-ylabel('MC')
-colormap('copper')
-
-
-%% database
-subplot(2,3,4)
-scatter(database(:,1),database(:,2),20,1:length(database),'filled')
-xlabel('KR')
-ylabel('GR')
-colormap('copper')
-
-subplot(2,3,5)
-scatter(database(:,1),database(:,3),20,1:length(database),'filled')
-xlabel('KR')
-ylabel('MC')
-colormap('copper')
-title('Database')
-
-subplot(2,3,6)
-scatter(database(:,2),database(:,3),20,1:length(database),'filled')
-xlabel('GR')
-ylabel('MC')
-colormap('copper')
+for i = 1:size(C,1)
+    subplot(num_plot_x,num_plot_y,i)
+    scatter(database(:,C(i,1)),database(:,C(i,2)),20,1:length(database),'filled')
+    
+    xlabel(config.metrics(C(i,1)))
+    ylabel(config.metrics(C(i,2)))
+    colormap('copper')
+end
 
 drawnow
 end
