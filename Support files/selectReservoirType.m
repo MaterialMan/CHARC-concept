@@ -88,6 +88,12 @@ switch(config.resType)
         config.assessFcn = @assessDNAreservoir;
         config.mutFcn = @mutateDNA;
         config.recFcn = @recombDNA;
+        
+    case 'DL'
+        config.createFcn = @createDLReservoir;
+        config.assessFcn = @collectDLStates;
+        config.mutFcn = @mutateDL;
+        config.recFcn = @recombDL;
 end
 
 config.testFcn = @testReservoir; % default for all

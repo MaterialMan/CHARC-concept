@@ -18,7 +18,7 @@ switch config.dataSet
         [inputSequence,outputSequence] = generate_new_NARMA_sequence(sequenceLength,10);
         inputSequence = 2*inputSequence-0.5;
         outputSequence = 2*outputSequence-0.5;
-        fprintf('NARMA 10 task: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('NARMA 10 task: %s \n',datestr(now, 'HH:MM:SS'))
         
     case 'NARMA20' %input error 4 - good task
         errType = 'NMSE';
@@ -29,7 +29,7 @@ switch config.dataSet
         [inputSequence,outputSequence] = generate_new_NARMA_sequence(sequenceLength,20);
         inputSequence = 2*inputSequence-0.5;
         outputSequence = 2*outputSequence-0.5;
-        fprintf('NARMA 20 task: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('NARMA 20 task: %s \n',datestr(now, 'HH:MM:SS'))
         
     case 'NARMA30' %input error 4 - good task
         errType = 'NMSE';
@@ -40,7 +40,7 @@ switch config.dataSet
         [inputSequence,outputSequence] = generate_new_NARMA_sequence(sequenceLength,30);
         inputSequence = 2*inputSequence-0.5;
         outputSequence = 2*outputSequence-0.5;
-        fprintf('NARMA 30 task: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('NARMA 30 task: %s \n',datestr(now, 'HH:MM:SS'))
          
     case 'HenonMap' % input error > 1 - good task
         queueType = 'simple';
@@ -68,7 +68,7 @@ switch config.dataSet
         inputSequence = data(1:sequenceLength,:);
         outputSequence = data(ahead+1:end,:);
         
-        fprintf('Low IPIX task - 5 ahead. \n Started at %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('Low IPIX task - 5 ahead. \n Started at %s \n',datestr(now, 'HH:MM:SS'))
         
     case 'IPIX_plus1' % good task
         errType = 'IPIX';
@@ -86,7 +86,7 @@ switch config.dataSet
         inputSequence = data(1:sequenceLength,:);
         outputSequence = data(ahead+1:end,:);
         
-        fprintf('Low IPIX task 1 ahead. \n Started at %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('Low IPIX task 1 ahead. \n Started at %s \n',datestr(now, 'HH:MM:SS'))
         
         
     case 'Laser' % good task
@@ -103,7 +103,7 @@ switch config.dataSet
         inputSequence = data(1:end-ahead)';
         outputSequence = data(ahead+1:end)';
         
-        fprintf('Laser task TSP - 64 electrode test: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('Laser task TSP - 64 electrode test: %s \n',datestr(now, 'HH:MM:SS'))
         
         
     case 'Sunspot' % good task but not sure about dataset- problem with dividing set
@@ -120,7 +120,7 @@ switch config.dataSet
         inputSequence = data(1:end-ahead);
         outputSequence = data(ahead+1:end);
         
-        fprintf('Sunspot task TSP: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('Sunspot task TSP: %s \n',datestr(now, 'HH:MM:SS'))
         
         %% Pattern Recognition - using PCA to reduce dimensions maybe very useful
         
@@ -270,7 +270,7 @@ switch config.dataSet
     case 'Iris' %iris_dataset; (4:in, 3:out) %input alone 76% - medium task
         errType = 'softmax';%'confusion';
         queueType = 'Weighted';
-        nForgetPoints =10;
+        nForgetPoints = 0;
         train_fraction=0.66666667;    val_fraction=0.333333/2;    test_fraction=0.333333/2;
         datasetLength = 150;
        

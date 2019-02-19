@@ -19,6 +19,7 @@ config.trainingType = 'Ridge';              % blank is psuedoinverse. Other opti
 
 %% ELM params
 if strcmp(config.resType,'ELM')
+    config.topology = 'standard';
     config.startFull = 1;                       % start with max network size
     config.alt_node_size = 0;                   % allow different network sizes
     config.activeFcn = 'tanh';
@@ -31,8 +32,8 @@ end
 
 %% Bz reservoir
 if strcmp(config.resType,'BZ')
-    config.plotBZ =0;
-    config.fft = 0;
+    config.plotBZ =1;
+    config.fft = 1;
     config.BZfigure1 = figure;
     config.BZfigure2 = figure; 
 end
@@ -40,15 +41,15 @@ end
 %% Graph params
 if strcmp(config.resType,'Graph')
     
-    config.substrate= 'Lattice';            % Define substrate
+    config.substrate= 'Ring';            % Define substrate
     % Examples: 'Lattice', 'Hypercube',
     % 'Torus','L-shape','Bucky','Barbell','Ring'
     
     config.NGrid = config.maxMinorUnits;    % Number of nodes
-    config.num_ensemble = 3;                % number of lattices
+    config.num_ensemble = 1;                % number of lattices
     
     % substrate params
-    config.N_rings = 5;                     % used with Torus     
+    config.N_rings = 1;                     % used with Torus     
     config.latticeType = 'fullLattice';        % see creatLattice.m for different types.
     config.ruleType = config.latticeType;       % used with Torus, 5 neighbours (Von Neumann) or 8 neighbours (Moore's)
     
@@ -64,6 +65,8 @@ if strcmp(config.resType,'Graph')
     config = getShape(config);              % call function to make graph.
     config.globalParams = 1;                % add global scaling parameters and leakrate
     figure3= figure;
+    
+    config.maxMinorUnits = config.N;
 end
 
 %% DNA reservoir
@@ -143,10 +146,10 @@ if strcmp(config.resType,'2dCA')
     
     % Define CA connectivity
     config.substrate= 'Lattice';    % Define substrate
-    config.latticeType = 'ensembleCube';        % must be 'full' for Moores and 'basic' for vonNeumann
+    config.latticeType = 'fullLattice';        % must be 'full' for Moores and 'basic' for vonNeumann
     config.self_loop = 1;                   % give node a loop to self.
     config.directedGraph = 0;               % directed graph (i.e. weight for all directions).
-    config.num_ensemble = 2;                % number of lattices
+    config.num_ensemble = 1;                % number of lattices
     config.NGrid = config.maxMinorUnits;    % Number of nodes
     
     % substrate params
@@ -200,6 +203,12 @@ if strcmp(config.resType,'2dCA')
     config.rules = initRules(rules);
 end
 
+%% delay-line reservoirs
+if strcmp(config.resType,'DL')
+    config.topology = 'virtualNodes';%'ELM';%'virtualNodes';
+    config.tau = 100;
+end
+
 %% Task bottom of list
 if strcmp(config.dataSet,'autoencoder')
     config.leakOn = 0;                          % add leak states
@@ -226,3 +235,4 @@ if strcmp(config.dataSet,'BinaryNbitAdder')
         %config.self_loop = 1;
     end
 end
+

@@ -5,8 +5,10 @@
 
 % Author: M. Dale
 % Date: 08/11/18
-
 clear
+
+% add all subfolders to the path --> make all functions in subdirectories available
+% addpath(genpath(pwd));
 
 warning('off','all')
 rng(1,'twister');
@@ -14,15 +16,15 @@ rng(1,'twister');
 %% Setup
 % type of network to evolve
 config.resType = 'RoR_IA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 25;                  % num of nodes in subreservoirs
-config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
+config.maxMinorUnits = 10;                  % num of nodes in subreservoirs
+config.maxMajorUnits = 3;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 config.nsga2 = 0;                           % not using NSGA
-config.parallel = 0;                        % use parallel toolbox
+config.parallel = 1;                        % use parallel toolbox
 
 %% Network details
 config.leakOn = 0;                          % add leak states
-config.AddInputStates = 0;                  % add input to states
+config.AddInputStates = 1;                  % add input to states
 config.regParam = 10e-5;                    % training regulariser
 config.sparseInputWeights = 0;              % use sparse inputs
 config.restricedWeight = 0;                  % restrict weights between [0.2 0.4. 0.6 0.8 1]
@@ -30,9 +32,9 @@ config.evolvedOutputStates = 0;             % sub-sample the states to produce o
 config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Evolutionary parameters
-config.numTests = 10;                        % num of runs
-config.popSize = 100;                       % large pop better
-config.totalGens = 2000;                    % num of gens
+config.numTests = 1;                        % num of runs
+config.popSize = 200;                       % large pop better
+config.totalGens = 1000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
@@ -94,7 +96,7 @@ for test = 1:config.numTests
     fprintf('\n Starting loop... Best error = %.4f\n',best);
     
     % store error that will be used as fitness in the GA
-    storeError(test,1,:) = [genotype.valError];
+    storeError(test,1,:) = [genotype.trainError].*0.2  + [genotype.valError].*0.5 + [genotype.testError].*0.3;
     
     %% start GA
     for gen = 2:config.totalGens
@@ -194,7 +196,8 @@ for test = 1:config.numTests
             
             %update errors
             storeError(test,gen,:) =  storeError(test,gen-1,:);
-            storeError(test,gen,loser) = genotype(loser).valError;
+            storeError(test,gen,loser) = [genotype(loser).trainError.*0.2  + genotype(loser).valError.*0.5 + genotype(loser).testError.*0.3];
+%genotype(loser).valError;
             best(gen)  = best(gen-1);
             best_indv(gen) = best_indv(gen-1);
             
