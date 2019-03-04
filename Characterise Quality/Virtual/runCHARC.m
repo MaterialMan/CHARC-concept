@@ -13,7 +13,7 @@ rng(1,'twister');
 %% Setup
 % type of network to evolve
 config.resType = 'RoR_IA';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 25;                   % num of nodes in subreservoirs
+config.maxMinorUnits = 50;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -45,7 +45,7 @@ config.dataSet =[];
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
 config.popSize = 200;                       % large pop better
-config.totalGens = 500;                    % num of gens
+config.totalGens = 50;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);

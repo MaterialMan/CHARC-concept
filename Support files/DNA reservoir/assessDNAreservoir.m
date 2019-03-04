@@ -80,7 +80,7 @@ end
 if config.AddInputStates
     states = [ones(size(inputSequence(config.nForgetPoints+1:end,1))) inputSequence(config.nForgetPoints+1:end,:) states];
 else
-    states = [ones(size(inputSequence(config.nForgetPoints+1:end,1))) states];
+    %states = [ones(size(inputSequence(config.nForgetPoints+1:end,1))) states];
 end
 
 %% Functions

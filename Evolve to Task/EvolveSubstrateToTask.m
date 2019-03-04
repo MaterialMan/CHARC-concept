@@ -15,9 +15,9 @@ rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = 'RoR_IA';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.resType = '';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
 config.maxMinorUnits = 10;                  % num of nodes in subreservoirs
-config.maxMajorUnits = 3;                   % num of subreservoirs. Default ESN should be 1.
+config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 config.nsga2 = 0;                           % not using NSGA
 config.parallel = 1;                        % use parallel toolbox

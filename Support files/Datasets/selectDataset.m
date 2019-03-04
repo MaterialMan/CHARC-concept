@@ -395,6 +395,45 @@ switch config.dataSet
         hist(out)
         %hist(in(:,2))
         %hist(in(:,1))
+        
+        case 'ImageGaussian' % Gaussian noise task
+        errType = 'softmax';
+        queueType = 'simple';
+        
+        nForgetPoints = 0;
+        train_fraction=0.5;    val_fraction=0.25;    test_fraction=0.25;
+        config.preprocess = 0;
+        
+        startscript;
+        
+        imagesCombined = horzcat(imagesOriginal,imagesGaussian);
+ 
+        inputs =[];trainingTarget=[];
+        for i=1:length(imagesCombined)
+            %inputs = imagesCombined{i}];
+            
+            if (i <= (length(imagesCombined)/2))
+                %trainingTarget(:,i,1) = 0;
+                %trainingTarget(:,i,2) = 1;
+                trainingTarget{i} = repmat([0 1],size(imagesCombined{i},1),1);
+                
+            else
+                %trainingTarget(:,i,1) = 1;
+                %trainingTarget(:,i,2) = 0;
+                trainingTarget{i} = repmat([1 0],size(imagesCombined{i},1),1);
+            end
+            
+        end
+        
+        target=randperm(length(imagesCombined));
+        temp_inputSequence = [];temp_outputSequence=[];
+        for i = 1:length(target)
+            temp_inputSequence = [temp_inputSequence; imagesCombined{target(i)}];
+            temp_outputSequence = [temp_outputSequence; trainingTarget{target(i)}];
+        end
+        
+        inputSequence = temp_inputSequence;
+        outputSequence = temp_outputSequence;
 end
 
 %% preprocessing

@@ -256,7 +256,7 @@ switch(config.errType)
 
     case 'softmax'
         
-     a = [];
+         a = [];
         for i = 1:length(systemOutput)
             a(i,:) = exp(systemOutput(i,:))/sum(exp(systemOutput(i,:)));
         end

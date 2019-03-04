@@ -41,7 +41,7 @@ end
 %% Graph params
 if strcmp(config.resType,'Graph')
     
-    config.substrate= 'Ring';            % Define substrate
+    config.substrate= 'Lattice';            % Define substrate
     % Examples: 'Lattice', 'Hypercube',
     % 'Torus','L-shape','Bucky','Barbell','Ring'
     

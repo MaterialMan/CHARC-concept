@@ -18,7 +18,7 @@ end
 %equation: x(n) = f(Win*u(n) + S)
 for i= 1:genotype.nInternalUnits
     temp_states = [];
-    for n = 2:length(inputSequence(:,1))
+    for n = 2:size(inputSequence,1)
         for k= 1:genotype.nInternalUnits
             x{i}(n,:) = x{i}(n,:) + (genotype.connectWeights{i,k}*states{k}(n-1,:)')';
         end
@@ -44,7 +44,7 @@ end
 if config.leakOn
     for i= 1:genotype.nInternalUnits
         leakStates = zeros(size(states{i}));
-        for n = 2:length(inputSequence(:,1))
+        for n = 2:size(inputSequence,1)
             leakStates(n,:) = (1-genotype.esnMinor(i).leakRate)*leakStates(n-1,:)+ genotype.esnMinor(i).leakRate*states{i}(n,:);
         end
         states{i} = leakStates;
