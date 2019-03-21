@@ -1,3 +1,4 @@
+clear
 
 dotSize= 5;
 maxKR =0; maxGR=0;maxMC=0;
@@ -270,28 +271,35 @@ legend('49-lattice','50-ring','64-CNT','Location','northwest')
 print('behaviourSpace_matVSsim50','-dpdf','-bestfit')
 
 %% parameters - same size
-clearvars -except dotSize maxKR maxGR maxMC directedPlot
-latt49u = load('Lattice_run1_gens2000_Nres_49_directed0_self1.mat','all_databases','total_space_covered','database_genotype');
-latt49d  = load('Lattice_run1_gens2000_Nres_49_directed1_self1.mat','all_databases','total_space_covered','database_genotype');
-ring50u = load('Ring_run1_gens2000_Nres_50_directed0_self1.mat','all_databases','total_space_covered','database_genotype');
-ring50d  = load('Ring_run1_gens2000_Nres_50_directed1_self1.mat','all_databases','total_space_covered','database_genotype');
-
-database = {ring50u.all_databases{1,10},ring50d.all_databases{1,10},latt49u.all_databases{1,10},latt49d.all_databases{1,10}};
-genotype = {ring50u.database_genotype,ring50d.database_genotype,latt49u.database_genotype,latt49d.database_genotype};
-parameter = 'Wscaling';
-plotBS(figure,{database{1:2}},dotSize,maxKR,maxGR,maxMC,directedPlot,{genotype{1:2}} ,parameter);
-print(strcat('paramSpace1_50size_',parameter),'-dpdf','-bestfit')
-plotBS(figure,{database{3:4}},dotSize,maxKR,maxGR,maxMC,directedPlot,{genotype{3:4}} ,parameter);
-print(strcat('paramSpace2_50size_',parameter),'-dpdf','-bestfit')
-
-parameter = 'inputScaling';
-plotBS(figure,{database{1:2}},dotSize,maxKR,maxGR,maxMC,directedPlot,{genotype{1:2}} ,parameter);
-print(strcat('paramSpace1_50size_',parameter),'-dpdf','-bestfit')
-plotBS(figure,{database{3:4}},dotSize,maxKR,maxGR,maxMC,directedPlot,{genotype{3:4}} ,parameter);
-print(strcat('paramSpace2_50size_',parameter),'-dpdf','-bestfit')
+% clearvars -except dotSize maxKR maxGR maxMC directedPlot
+% latt49u = load('Lattice_run1_gens2000_Nres_49_directed0_self1.mat','all_databases','total_space_covered','database_genotype');
+% latt49d  = load('Lattice_run1_gens2000_Nres_49_directed1_self1.mat','all_databases','total_space_covered','database_genotype');
+% ring50u = load('Ring_run1_gens2000_Nres_50_directed0_self1.mat','all_databases','total_space_covered','database_genotype');
+% ring50d  = load('Ring_run1_gens2000_Nres_50_directed1_self1.mat','all_databases','total_space_covered','database_genotype');
+% 
+% database = {ring50u.all_databases{1,10},ring50d.all_databases{1,10},latt49u.all_databases{1,10},latt49d.all_databases{1,10}};
+% genotype = {ring50u.database_genotype,ring50d.database_genotype,latt49u.database_genotype,latt49d.database_genotype};
+% parameter = 'Wscaling';
+% plotBS(figure,{database{1:2}},dotSize,maxKR,maxGR,maxMC,directedPlot,{genotype{1:2}} ,parameter);
+% print(strcat('paramSpace1_50size_',parameter),'-dpdf','-bestfit')
+% plotBS(figure,{database{3:4}},dotSize,maxKR,maxGR,maxMC,directedPlot,{genotype{3:4}} ,parameter);
+% print(strcat('paramSpace2_50size_',parameter),'-dpdf','-bestfit')
+% 
+% parameter = 'inputScaling';
+% plotBS(figure,{database{1:2}},dotSize,maxKR,maxGR,maxMC,directedPlot,{genotype{1:2}} ,parameter);
+% print(strcat('paramSpace1_50size_',parameter),'-dpdf','-bestfit')
+% plotBS(figure,{database{3:4}},dotSize,maxKR,maxGR,maxMC,directedPlot,{genotype{3:4}} ,parameter);
+% print(strcat('paramSpace2_50size_',parameter),'-dpdf','-bestfit')
 % parameters - different size
 
 %% new measures of quality - was wrong before
+clearvars -except ring25u ring25d ring50u ring50d ring100u ring100d ring200u ring200d...
+    latt25u latt25d latt49u latt49d latt100u latt100d latt196u latt196d...
+    esn25 esn50 esn100 esn200
+
+% get number of weights
+calculateNumEdges
+
 sc = {ring25u.all_databases{:,10}};
 total_space_covered(1,1:10) = measureSearchSpace(sc,repmat(25,1,10));
 sc = {ring50u.all_databases{:,10}};
@@ -358,25 +366,31 @@ hold on
 er = errorbar(x(:),yt(1:end), L(1:end),U(1:end));
 er.LineStyle = 'none';
 er.Color= [0.5 0.5 0.5];
+% 
+% c = {repmat([0 0 0],4,1);
+%     repmat([0.2 0.2 0.2],4,1);
+%     repmat([0.4 0.4 0.4],4,1);
+%     repmat([0.6 0.6 0.6],4,1);
+%     repmat([0.8 0.8 0.8],4,1)};
 
 c = {repmat([0 0 0],4,1);
-    repmat([0.2 0.2 0.2],4,1);
-    repmat([0.4 0.4 0.4],4,1);
-    repmat([0.6 0.6 0.6],4,1);
-    repmat([0.8 0.8 0.8],4,1)};
+    repmat([0 0 0],4,1);
+    repmat([0.65 0.65 0.65],4,1);
+    repmat([0.65 0.65 0.65],4,1);
+    repmat([0.9 0.9 0.9],4,1)};
 
-typ = {'o','s','o','s','d'};
+typ = {'p','s','p','s','d'};
 
 for i = 1:length(x)  
     x_plot = x(i,:);
-    y_plot = y(i,:);
-    scatter(x_plot,y_plot,75,c{i},'filled',typ{i})
+    y_plot = yts(i,:);
+    scatter(x_plot,y_plot,100,c{i},'filled',typ{i})
     hold on
 end
 hold off
 
 x_text = x';
-y_text = y';
+y_text = yts';
 ylabel('coverage/quality','FontSize',12,'FontName','Arial')
 xlabel('max number of weights','FontSize',12,'FontName','Arial')
 set(gcf,'renderer','OpenGL')
@@ -391,12 +405,13 @@ yline = [2200 2200];
 line(xline,yline,'Color','k','LineStyle','-')
 
 xlim([20 10e4]);
-ylim([200 max(max(y))+500]);
+ylim([200 max(max(yts))+500]);
 legend('min/max','ring(u)','ring(d)', 'lattice(u)', 'lattice(d)', 'esn(d)','max coverage','Location','northwest')
 set(gca, 'xScale', 'log')
 set(gca, 'yScale', 'log')
 grid on
 set(gca,'FontSize',12,'FontName','Arial')
+
 print('weightVsCoverage2','-dpdf','-opengl','-bestfit')
 
 %%

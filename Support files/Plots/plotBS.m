@@ -1,6 +1,6 @@
 function [maxKR,maxGR,maxMC] = plotBS(figureHandle,database,dotSize,maxKR,maxGR,maxMC,directedPlots,genotype,param)
 
-if nargin < 7
+if nargin <= 7
     
     set(figureHandle,'position',[0,492,1657,456])
     if directedPlots % plot ring vs lattice vs esn

@@ -40,4 +40,14 @@ if config.evolveOutputWeights
     genotype.outputWeights = reshape(outputWeights,size(genotype.outputWeights));
 end
 
+% mutate states to use
+if config.evolvedOutputStates
+    % state_loc
+    for i = 1:length(genotype.state_loc)
+        if rand < config.mutRate
+            genotype.state_loc(i) = round(rand);
+        end
+    end  
+    % update percent
+    genotype.state_perc = sum(genotype.state_loc)/genotype.nTotalUnits;
 end

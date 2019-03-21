@@ -54,9 +54,9 @@ for metric_item = 1:length(config.metrics)
             end
             kernel_rank = e_rank-1;
             
-            kernel_rank = kernel_rank/size(M,2);
+            %kernel_rank = kernel_rank/size(M,2);
             
-            metrics = [metrics kernel_rank*100];
+            metrics = [metrics kernel_rank];%*100];
             
             %% Genralization Rank
         case 'GR'
@@ -90,10 +90,11 @@ for metric_item = 1:length(config.metrics)
             end
             gen_rank = e_rank-1;
             
-            gen_rank = gen_rank/size(M,2);
+            %gen_rank = gen_rank/size(M,2);
+            %metrics = [metrics gen_rank*100];
             
-            metrics = [metrics gen_rank*100];
-            
+            metrics = [metrics gen_rank];
+                
             %% LE measure
         case 'LE'
             rng(1,'twister');
@@ -130,7 +131,11 @@ for metric_item = 1:length(config.metrics)
             
             %% Assign input data and collect target output
             dataLength = 6000;
-            dataSequence = rand(1,dataLength+1++nOutputUnits);% Deep-ESN version: 1.6*rand(1,dataLength+1++nOutputUnits)-0.8;
+            if strcmp(config.resType,'basicCA') || strcmp(config.resType,'2dCA') || strcmp(config.resType,'RBN')
+                dataSequence = round(rand(1,dataLength+1++nOutputUnits));% Deep-ESN version: 1.6*rand(1,dataLength+1++nOutputUnits)-0.8;
+            else
+                dataSequence = rand(1,dataLength+1++nOutputUnits);% Deep-ESN version: 1.6*rand(1,dataLength+1++nOutputUnits)-0.8;
+            end
             sequenceLength = 5000;
             
             memInputSequence = dataSequence(nOutputUnits+1:dataLength+nOutputUnits)';
@@ -149,12 +154,12 @@ for metric_item = 1:length(config.metrics)
             
             %train
             outputWeights = trainOutputSequence(config.nForgetPoints+1:end,:)'*states*inv(states'*states + config.regParam*eye(size(states'*states)));
-            Yt = states * outputWeights';
+            Yt = round(states * outputWeights');
             
             %test
             testStates =  config.assessFcn(genotype,testInputSequence,config);
             
-            Y = testStates * outputWeights';
+            Y = round(testStates * outputWeights');
             
             MC= 0; Cm = 0;
             for i = 1:nOutputUnits

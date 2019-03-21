@@ -100,9 +100,17 @@ for res = 1:config.popSize
     end
     
 
+    % add dummy outputweights
     if config.AddInputStates
         genotype(res).outputWeights = zeros(genotype(res).nTotalUnits+genotype(res).nInputUnits+1,genotype(res).nOutputUnits);      
     else
         genotype(res).outputWeights = zeros(genotype(res).nTotalUnits+1,genotype(res).nOutputUnits);
+    end
+    
+    if config.evolvedOutputStates
+        genotype(res).state_perc = 1; % start full
+        genotype(res).state_loc = zeros(genotype(res).nTotalUnits,1);
+        genotype(res).state_loc(randperm(size(genotype(res).state_loc,1),round(randi([1 round(size(genotype(res).state_loc,1))])*genotype(res).state_perc))) = 1;
+        genotype(res).totalStates = sum(genotype(res).state_loc);
     end
 end

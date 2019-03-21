@@ -42,6 +42,22 @@ switch config.dataSet
         outputSequence = 2*outputSequence-0.5;
         %fprintf('NARMA 30 task: %s \n',datestr(now, 'HH:MM:SS'))
          
+    case 'NARMA10_DLexample' %input error 4 - good task
+        errType = 'NRMSE';
+        queueType = 'simple';
+        config.preprocess = 0;
+        
+        nForgetPoints = 100;
+        sequenceLength = 2700;
+       % sequenceLength = 6000;
+        train_fraction = 0.3333;    val_fraction=0.3333;    test_fraction=0.3333;
+       % train_fraction = 4000/sequenceLength;    val_fraction=1000/sequenceLength;    test_fraction=1000/sequenceLength;
+     
+        [inputSequence,outputSequence] = generate_new_NARMA_sequence(sequenceLength,10);
+      %  inputSequence = inputSequence;
+     %   outputSequence = outputSequence;
+        %fprintf('NARMA 10 task: %s \n',datestr(now, 'HH:MM:SS'))
+        
     case 'HenonMap' % input error > 1 - good task
         queueType = 'simple';
         errType = 'NMSE';
@@ -268,10 +284,11 @@ switch config.dataSet
         outputSequence = combOutput;
         
     case 'Iris' %iris_dataset; (4:in, 3:out) %input alone 76% - medium task
-        errType = 'softmax';%'confusion';
+        errType = 'IJCNNpaper';%'IJCNNpaper';%'confusion';
         queueType = 'Weighted';
         nForgetPoints = 0;
-        train_fraction=0.66666667;    val_fraction=0.333333/2;    test_fraction=0.333333/2;
+       % train_fraction=0.66666667;    val_fraction=0.333333/2;    test_fraction=0.333333/2;
+       train_fraction=0.5;    val_fraction=0.25;    test_fraction=0.25;
         datasetLength = 150;
        
         t =  randperm(datasetLength,datasetLength);

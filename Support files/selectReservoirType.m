@@ -94,6 +94,13 @@ switch(config.resType)
         config.assessFcn = @collectDLStates;
         config.mutFcn = @mutateDL;
         config.recFcn = @recombDL;
+        
+    case 'instrRes'
+        config.createFcn = @createInstruReservoir;
+        config.assessFcn = @assessInstru;
+        config.mutFcn = @mutateInstru;
+        config.recFcn = @recombInstru;
+        
 end
 
 config.testFcn = @testReservoir; % default for all

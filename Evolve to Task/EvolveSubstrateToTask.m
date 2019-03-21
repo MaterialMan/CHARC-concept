@@ -10,41 +10,44 @@ clear
 % add all subfolders to the path --> make all functions in subdirectories available
 % addpath(genpath(pwd));
 
+load('Framework_substrate_RoR_IA_run1_gens200_1Nres_25_nSize.mat');
+config.database_genotype = database_genotype;
+
 warning('off','all')
 rng(1,'twister');
 
 %% Setup
 % type of network to evolve
-config.resType = '';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 10;                  % num of nodes in subreservoirs
-config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
+config.resType = 'instrRes';                      % can use different hierarchical reservoirs. RoR_IA is default ESN.
+config.maxMinorUnits = 25;                  % num of nodes in subreservoirs
+config.maxMajorUnits = 2;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       % get correct functions for type of reservoir
 config.nsga2 = 0;                           % not using NSGA
 config.parallel = 1;                        % use parallel toolbox
 
 %% Network details
-config.leakOn = 0;                          % add leak states
+config.leakOn = 1;                          % add leak states
 config.AddInputStates = 1;                  % add input to states
 config.regParam = 10e-5;                    % training regulariser
 config.sparseInputWeights = 0;              % use sparse inputs
-config.restricedWeight = 0;                  % restrict weights between [0.2 0.4. 0.6 0.8 1]
+config.restricedWeight = 0;                 % restrict weights between [0.2 0.4. 0.6 0.8 1]
 config.evolvedOutputStates = 0;             % sub-sample the states to produce output (is evolved)
 config.evolveOutputWeights = 0;             % evolve rather than train
 
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
 config.popSize = 200;                       % large pop better
-config.totalGens = 1000;                    % num of gens
+config.totalGens = 1999;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
 config.recRate = 0.5;                       % recombination rate
 
 %% Task parameters
-config.dataSet = 'NARMA10';                 % Task to evolve for
 config.discrete = 0;               % binary input for discrete systems
 config.nbits = 16;                       % if using binary/discrete systems 
 config.preprocess = 1;                   % basic preprocessing, e.g. scaling and mean variance
+config.dataSet = 'NARMA10';                 % Task to evolve for
 
 % get dataset 
 [config] = selectDataset(config);
@@ -59,7 +62,7 @@ figure1 =figure;
 config.saveGen = 2000;                      % save at gen = saveGen
 config.multiOffspring = 0;                  % multiple tournament selection and offspring in one cycle
 config.numSyncOffspring = config.deme;      % length of cycle/synchronisation step
-config.use_metric =[1 1 0];                 % metrics to use = [KR GR LE]
+config.metrics = {'KR','GR','MC'};          % metrics to use
 config.record_metrics = 0;                  % save metrics
 
 %% RUn MicroGA
@@ -96,7 +99,7 @@ for test = 1:config.numTests
     fprintf('\n Starting loop... Best error = %.4f\n',best);
     
     % store error that will be used as fitness in the GA
-    storeError(test,1,:) = [genotype.trainError].*0.2  + [genotype.valError].*0.5 + [genotype.testError].*0.3;
+    storeError(test,1,:) = [genotype.valError];%[genotype.trainError].*0.2  + [genotype.valError].*0.5 + [genotype.testError].*0.3;
     
     %% start GA
     for gen = 2:config.totalGens
@@ -196,7 +199,7 @@ for test = 1:config.numTests
             
             %update errors
             storeError(test,gen,:) =  storeError(test,gen-1,:);
-            storeError(test,gen,loser) = [genotype(loser).trainError.*0.2  + genotype(loser).valError.*0.5 + genotype(loser).testError.*0.3];
+            storeError(test,gen,loser) = genotype(loser).valError;%[genotype(loser).trainError.*0.2  + genotype(loser).valError.*0.5 + genotype(loser).testError.*0.3];
 %genotype(loser).valError;
             best(gen)  = best(gen-1);
             best_indv(gen) = best_indv(gen-1);
@@ -238,8 +241,7 @@ for test = 1:config.numTests
     %get metric details 
     if config.record_metrics
         parfor popEval = 1:config.popSize
-            [~, kernel_rank(test,popEval), gen_rank(test,popEval)] = metricKQGRLE(genotype(popEval),config);
-           % MC(test,popEval) = metricMemory(genotype(popEval),config);
+            metrics(popEval,:) = getVirtualMetrics(genotype(popEval),config);
         end
     end
 end

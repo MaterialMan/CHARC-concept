@@ -13,7 +13,7 @@ rng(1,'twister');
 %% Setup
 % type of network to evolve
 config.resType = 'RoR_IA';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 50;                   % num of nodes in subreservoirs
+config.maxMinorUnits = 25;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -21,13 +21,14 @@ config = selectReservoirType(config);       %get correct functions for type of r
 config.startFull = 1;                       % start with max network size
 config.alt_node_size = 0;                   % allow different network sizes
 config.multiActiv = 0;                      % use different activation funcs
-config.leakOn = 0;                          % add leak states
+config.leakOn = 1;                          % add leak states
 config.rand_connect =1;                     %radnomise networks
 config.activList = {'tanh';'linearNode'};   % what activations are in use when multiActiv = 1
 config.trainingType = 'Ridge';              %blank is psuedoinverse. Other options: Ridge, Bias,RLS
 config.AddInputStates = 0;                  %add input to states
 config.regParam = 10e-5;                    %training regulariser
-config.metrics = {'KR','GR','MC','Entropy'}; % metrics to use (and order of metrics)
+config.metrics = {'KR','GR','MC'}; % metrics to use (and order of metrics)
+config.voxel_size = 5;                      % when measuring quality, pick a suitable voxel size 
 
 config.sparseInputWeights = 0;              % use sparse inputs
 config.restricedWeight = 0;                 % restrict weights to defined values
@@ -45,7 +46,7 @@ config.dataSet =[];
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
 config.popSize = 200;                       % large pop better
-config.totalGens = 50;                    % num of gens
+config.totalGens = 200;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
@@ -55,14 +56,14 @@ config.evolveOutputWeights = 0;             % evolve rather than train
 % NS parameters
 config.k_neighbours = 10;                   % how many neighbours to check
 config.p_min_start = 3;                           % novelty threshold. Start low.
-config.p_min_check = 250;                   % change novelty threshold dynamically after "p_min_check" gens.
+config.p_min_check = 200;                   % change novelty threshold dynamically after "p_min_check" gens.
 
 
 % general params
 config.genPrint = 10;                       % gens to display achive and database
 config.startTime = datestr(now, 'HH:MM:SS');
 figure1 =figure;
-config.saveGen = 25;                        % save at gen = saveGen
+config.saveGen = 200;                        % save at gen = saveGen
 config.paramIndx = 1;                       % record database; start from 1
 
 %% Run MicroGA
@@ -192,20 +193,27 @@ for tests = 1:config.numTests
         % safe details to disk
        if mod(gen,config.saveGen) == 0
             %% ------------------------------ Save data -----------------------------------------------------------------------------------
-            [total_space_covered(tests,config.paramIndx),~]= measureSearchSpace(database);
+            [total_space_covered(tests,config.paramIndx),~]= measureSearchSpace(database,config.voxel_size);
             
             all_databases{tests,config.paramIndx} = database;
             config.paramIndx = config.paramIndx+1;
             
             if strcmp(config.resType,'Graph')
                 save(strcat('substrate_',config.substrate,'_run',num2str(tests),'_gens',num2str(config.totalGens),'_Nres_',num2str(config.N),'_directed',num2str(config.directedGraph),'_self',num2str(config.self_loop),'_nSize.mat'),...
-                    'all_databases','genotype','config','total_space_covered','-v7.3');     
+                    'all_databases','database_genotype','genotype','config','total_space_covered','-v7.3');     
             else
                 save(strcat('Framework_substrate_',config.resType,'_run',num2str(tests),'_gens',num2str(config.totalGens),'_',num2str(config.maxMajorUnits),'Nres_',num2str(config.maxMinorUnits),'_nSize.mat'),...
-                    'all_databases','genotype','config','total_space_covered','-v7.3');
+                    'all_databases','database_genotype','genotype','config','total_space_covered','-v7.3');
             end
        end
     end
+    
+    config.taskList = {'NARMA10','NARMA30','Laser','NonChanEqRodan'};
+    config.discrete = 0;               % binary input for discrete systems
+    config.nbits = 16;                       % if using binary/discrete systems
+    config.preprocess = 1;                   % basic preprocessing, e.g. scaling and mean variance
+    pred_dataset = assessDBonTasks(config,database_genotype,database,tests);
+
 end
 
 %% fitness function

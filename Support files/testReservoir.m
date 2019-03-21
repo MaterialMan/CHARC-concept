@@ -6,8 +6,8 @@ statesExtval = config.assessFcn(genotype,config.valInputSequence,config);
 if config.evolveOutputWeights %if W_out are evolved instead of trained
     outputSequence = statesExt*genotype.outputWeights;
     outputValSequence = statesExtval*genotype.outputWeights;
-    genotype.trainError = calculateError(outputSequence,config.trainOutputSequence,config.nForgetPoints,config.errType);
-    genotype.valError = calculateError(outputValSequence,config.valOutputSequence,config.nForgetPoints,config.errType);
+    genotype.trainError = calculateError(outputSequence,config.trainOutputSequence,config);
+    genotype.valError = calculateError(outputValSequence,config.valOutputSequence,config);
 else
     
     % Find best reg parameter
@@ -31,12 +31,31 @@ else
     
     [~, regIndx]= min(sum(regValError,2));
     genotype.trainError = sum(regTrainError(regIndx,:));
-    genotype.valError = sum(regValError(regIndx,:));  
+    genotype.valError = sum(regValError(regIndx,:));
     genotype.outputWeights =reshape(regWeights(regIndx,:,:),size(regWeights,2),size(regWeights,3));
-
+    
     %remove NaNs
     genotype.outputWeights(isnan(genotype.outputWeights)) = 0;
 end
+
+% subplot(2,2,1)
+% hold off
+% plot(outputSequence,'b')
+% hold on
+% plot(config.trainOutputSequence(config.nForgetPoints+1:end,:),'r')
+% 
+% subplot(2,2,2)
+% plot(statesExt)
+% 
+% subplot(2,2,3)
+% hold off
+% plot(outputValSequence,'b')
+% hold on
+% plot(config.valOutputSequence(config.nForgetPoints+1:end,:),'r')
+% 
+% subplot(2,2,4)
+% plot(statesExtval)
+% drawnow
 
 %% Evaluate on test data
 testStates = config.assessFcn(genotype,config.testInputSequence,config);

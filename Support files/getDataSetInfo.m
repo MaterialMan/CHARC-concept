@@ -41,7 +41,7 @@ end
 %% Graph params
 if strcmp(config.resType,'Graph')
     
-    config.substrate= 'Lattice';            % Define substrate
+    config.substrate= 'Ring';            % Define substrate
     % Examples: 'Lattice', 'Hypercube',
     % 'Torus','L-shape','Bucky','Barbell','Ring'
     
@@ -205,8 +205,8 @@ end
 
 %% delay-line reservoirs
 if strcmp(config.resType,'DL')
-    config.topology = 'virtualNodes';%'ELM';%'virtualNodes';
-    config.tau = 100;
+    config.DLtype = 'mackey_glass2';%'ELM';%'virtualNodes';
+    %config.tau = 100;
 end
 
 %% Task bottom of list

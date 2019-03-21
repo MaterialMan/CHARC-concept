@@ -52,13 +52,13 @@ if config.leakOn
 end
 
 statesExt = ones(size(states{1},1),1)*genotype.inputShift;
-    for i= 1:genotype.nInternalUnits
-        statesExt = [statesExt states{i}];
-    end
-       
-    if config.AddInputStates == 1
-        statesExt = [statesExt inputSequence];
-    end
+for i= 1:genotype.nInternalUnits
+    statesExt = [statesExt states{i}];
+end
+
+if config.AddInputStates == 1
+    statesExt = [statesExt inputSequence];
+end
 
 
 statesExt = statesExt(config.nForgetPoints+1:end,:); % remove washout
