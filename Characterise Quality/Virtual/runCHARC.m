@@ -18,7 +18,7 @@ end
 %% Setup
 % type of network to evolve
 config.resType = 'RoR_IA';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 50;                   % num of nodes in subreservoirs
+config.maxMinorUnits = 20;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -32,7 +32,7 @@ config.activList = {'tanh';'linearNode'};   % what activations are in use when m
 config.trainingType = 'Ridge';              %blank is psuedoinverse. Other options: Ridge, Bias,RLS
 config.AddInputStates = 1;                  %add input to states
 config.regParam = 10e-5;                    %training regulariser
-config.metrics = {'KR','MC'}; % metrics to use (and order of metrics)
+config.metrics = {'KR','GR','MC'}; % metrics to use (and order of metrics)
 config.voxel_size = 10;                      % when measuring quality, pick a suitable voxel size 
 
 config.sparseInputWeights = 0;              % use sparse inputs
@@ -50,7 +50,7 @@ config.dataSet =[];
 
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
-config.popSize = 200;                       % large pop better
+config.popSize = 50;                       % large pop better
 config.totalGens = 1000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
@@ -98,7 +98,7 @@ for tests = 1:config.numTests
     metrics = [];
     
     %% Evaluate population and assess novelty
-    ppm = ParforProgMon('Initial population', config.popSize);
+    ppm = ParforProgMon('Initial population: ', config.popSize);
     parfor popEval = 1:config.popSize
         metrics(popEval,:) = getVirtualMetrics(genotype(popEval),config);
         ppm.increment();
