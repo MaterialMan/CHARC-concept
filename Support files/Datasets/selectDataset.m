@@ -1,21 +1,12 @@
 %% Select Data Script: Generate task data sets and split data
-% Notes:
-% - All data normalised between [-0.5 0.5]
-% - Incomplete, but most datasets should work.
-
-function [trainInputSequence,trainOutputSequence,valInputSequence,valOutputSequence,...
-    testInputSequence,testOutputSequence,nForgetPoints,errType,queueType] = selectDataset(inputData,preprocess)
+function [config] = selectDataset(config)
 
 scurr = rng;
 temp_seed = scurr.Seed;
 
-if nargin < 2
-    preprocess = 1;
-end
-
 rng(1,'twister');
 
-switch inputData
+switch config.dataSet
     
     %% Chaotic systems
     case 'NARMA10' %input error 4 - good task
@@ -27,7 +18,7 @@ switch inputData
         [inputSequence,outputSequence] = generate_new_NARMA_sequence(sequenceLength,10);
         inputSequence = 2*inputSequence-0.5;
         outputSequence = 2*outputSequence-0.5;
-        fprintf('NARMA 10 task: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('NARMA 10 task: %s \n',datestr(now, 'HH:MM:SS'))
         
     case 'NARMA20' %input error 4 - good task
         errType = 'NMSE';
@@ -38,7 +29,7 @@ switch inputData
         [inputSequence,outputSequence] = generate_new_NARMA_sequence(sequenceLength,20);
         inputSequence = 2*inputSequence-0.5;
         outputSequence = 2*outputSequence-0.5;
-        fprintf('NARMA 20 task: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('NARMA 20 task: %s \n',datestr(now, 'HH:MM:SS'))
         
     case 'NARMA30' %input error 4 - good task
         errType = 'NMSE';
@@ -49,8 +40,24 @@ switch inputData
         [inputSequence,outputSequence] = generate_new_NARMA_sequence(sequenceLength,30);
         inputSequence = 2*inputSequence-0.5;
         outputSequence = 2*outputSequence-0.5;
-        fprintf('NARMA 30 task: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('NARMA 30 task: %s \n',datestr(now, 'HH:MM:SS'))
          
+    case 'NARMA10_DLexample' %input error 4 - good task
+        errType = 'NRMSE';
+        queueType = 'simple';
+        config.preprocess = 0;
+        
+        nForgetPoints = 100;
+        sequenceLength = 2700;
+       % sequenceLength = 6000;
+        train_fraction = 0.3333;    val_fraction=0.3333;    test_fraction=0.3333;
+       % train_fraction = 4000/sequenceLength;    val_fraction=1000/sequenceLength;    test_fraction=1000/sequenceLength;
+     
+        [inputSequence,outputSequence] = generate_new_NARMA_sequence(sequenceLength,10);
+      %  inputSequence = inputSequence;
+     %   outputSequence = outputSequence;
+        %fprintf('NARMA 10 task: %s \n',datestr(now, 'HH:MM:SS'))
+        
     case 'HenonMap' % input error > 1 - good task
         queueType = 'simple';
         errType = 'NMSE';
@@ -77,7 +84,7 @@ switch inputData
         inputSequence = data(1:sequenceLength,:);
         outputSequence = data(ahead+1:end,:);
         
-        fprintf('Low IPIX task - 5 ahead. \n Started at %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('Low IPIX task - 5 ahead. \n Started at %s \n',datestr(now, 'HH:MM:SS'))
         
     case 'IPIX_plus1' % good task
         errType = 'IPIX';
@@ -95,7 +102,7 @@ switch inputData
         inputSequence = data(1:sequenceLength,:);
         outputSequence = data(ahead+1:end,:);
         
-        fprintf('Low IPIX task 1 ahead. \n Started at %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('Low IPIX task 1 ahead. \n Started at %s \n',datestr(now, 'HH:MM:SS'))
         
         
     case 'Laser' % good task
@@ -112,7 +119,7 @@ switch inputData
         inputSequence = data(1:end-ahead)';
         outputSequence = data(ahead+1:end)';
         
-        fprintf('Laser task TSP - 64 electrode test: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('Laser task TSP - 64 electrode test: %s \n',datestr(now, 'HH:MM:SS'))
         
         
     case 'Sunspot' % good task but not sure about dataset- problem with dividing set
@@ -129,11 +136,11 @@ switch inputData
         inputSequence = data(1:end-ahead);
         outputSequence = data(ahead+1:end);
         
-        fprintf('Sunspot task TSP: %s \n',datestr(now, 'HH:MM:SS'))
+        %fprintf('Sunspot task TSP: %s \n',datestr(now, 'HH:MM:SS'))
         
         %% Pattern Recognition - using PCA to reduce dimensions maybe very useful
         
-    case 'autoencoder'
+    case 'Autoencoder'
         errType = 'MSE';
         queueType = 'simple';
         nForgetPoints = 0;
@@ -193,6 +200,7 @@ switch inputData
         outputSequence =outputSequence';
         
     case 'handDigits'
+        
         errType = 'softmax';
         queueType = 'Weighted';
         nForgetPoints =10;
@@ -276,10 +284,11 @@ switch inputData
         outputSequence = combOutput;
         
     case 'Iris' %iris_dataset; (4:in, 3:out) %input alone 76% - medium task
-        errType = 'softmax';%'confusion';
+        errType = 'IJCNNpaper';%'IJCNNpaper';%'confusion';
         queueType = 'Weighted';
-        nForgetPoints =10;
-        train_fraction=0.66666667;    val_fraction=0.333333/2;    test_fraction=0.333333/2;
+        nForgetPoints = 0;
+       % train_fraction=0.66666667;    val_fraction=0.333333/2;    test_fraction=0.333333/2;
+       train_fraction=0.5;    val_fraction=0.25;    test_fraction=0.25;
         datasetLength = 150;
        
         t =  randperm(datasetLength,datasetLength);
@@ -361,7 +370,7 @@ switch inputData
         datalength = 5000;
         nForgetPoints = 25;
         train_fraction=0.5;    val_fraction=0.25;    test_fraction=0.25;
-        preprocess =0;
+        config.preprocess =0;
         
         A_in = randi([0 (2^bit)-1],datalength,1);
         B_in = randi([0 (2^bit)-1],datalength,1);
@@ -403,21 +412,49 @@ switch inputData
         hist(out)
         %hist(in(:,2))
         %hist(in(:,1))
+        
+        case 'ImageGaussian' % Gaussian noise task
+        errType = 'softmax';
+        queueType = 'simple';
+        
+        nForgetPoints = 0;
+        train_fraction=0.5;    val_fraction=0.25;    test_fraction=0.25;
+        config.preprocess = 0;
+        
+        startscript;
+        
+        imagesCombined = horzcat(imagesOriginal,imagesGaussian);
+ 
+        inputs =[];trainingTarget=[];
+        for i=1:length(imagesCombined)
+            %inputs = imagesCombined{i}];
+            
+            if (i <= (length(imagesCombined)/2))
+                %trainingTarget(:,i,1) = 0;
+                %trainingTarget(:,i,2) = 1;
+                trainingTarget{i} = repmat([0 1],size(imagesCombined{i},1),1);
+                
+            else
+                %trainingTarget(:,i,1) = 1;
+                %trainingTarget(:,i,2) = 0;
+                trainingTarget{i} = repmat([1 0],size(imagesCombined{i},1),1);
+            end
+            
+        end
+        
+        target=randperm(length(imagesCombined));
+        temp_inputSequence = [];temp_outputSequence=[];
+        for i = 1:length(target)
+            temp_inputSequence = [temp_inputSequence; imagesCombined{target(i)}];
+            temp_outputSequence = [temp_outputSequence; trainingTarget{target(i)}];
+        end
+        
+        inputSequence = temp_inputSequence;
+        outputSequence = temp_outputSequence;
 end
 
-%normalise all features
-%[inputSequence, mu, sigma] = featureNormalize(inputSequence);
-
-%squash
-% if hardware
-%     for i = 1:size(inputSequence,2)
-%         if max(inputSequence(:,i)) ~= 0
-%             inputSequence(:,i) = ((inputSequence(:,i)-mean(inputSequence(:,i)))/((max(inputSequence(:,i))-min(inputSequence(:,i)))))-0.5;
-%         end
-%     end
-% end
-
-if preprocess
+%% preprocessing
+if config.preprocess
     for i = 1:size(inputSequence,2)    
         inputSequence(inputSequence(:,i) ~= 0,i) = (inputSequence(inputSequence(:,i) ~= 0,i)-mean(inputSequence(:,i)))/(max(inputSequence(:,i))-min(inputSequence(:,i)));
     end
@@ -427,6 +464,17 @@ if preprocess
     end
 end
 
+if config.discrete %choose n-bit word length if needed by adding s,w,f to func() parameters
+   
+    if config.parallel
+        config.poolobj = gcp;
+        addAttachedFiles(config.poolobj,{'bin2num.m'})
+    end
+    
+    [inputSequence, config.q] = double2binaryInputVector(inputSequence,config.nbits);
+    [outputSequence, config.q] = double2binaryInputVector(outputSequence,config.nbits);
+end
+
 [trainInputSequence,valInputSequence,testInputSequence] = ...
     split_train_test3way(inputSequence,train_fraction,val_fraction,test_fraction);
 [trainOutputSequence,valOutputSequence,testOutputSequence] = ...
@@ -434,3 +482,14 @@ end
 
 % Go back to old seed
 rng(temp_seed,'twister');
+
+% squash into structure
+config.trainInputSequence = trainInputSequence;
+config.trainOutputSequence = trainOutputSequence;
+config.valInputSequence = valInputSequence;
+config.valOutputSequence = valOutputSequence;
+config.testInputSequence = testInputSequence;
+config.testOutputSequence = testOutputSequence;
+config.nForgetPoints = nForgetPoints;
+config.errType = errType;
+config.queueType = queueType;

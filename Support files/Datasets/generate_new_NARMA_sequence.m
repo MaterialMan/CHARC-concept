@@ -29,16 +29,17 @@ end
 
 %previously used to initiate random seed 
 %rng(1,'twister');
+washout =1000;
 
 %%%% create input (set to between a distribution given by default or user
 % use the input sequence to drive a NARMA equation
-inputSequence = (upperDist-lowerDist)*rand(sequenceLength+memoryLength,1)+lowerDist;
-outputSequence = zeros(sequenceLength+memoryLength,1);
+inputSequence = (upperDist-lowerDist)*rand(sequenceLength+memoryLength+washout,1)+lowerDist;
+outputSequence = zeros(sequenceLength+memoryLength+washout,1);
 
 switch(memoryLength)
     %% Settings according to: A Comparative Study of Reservoir Computing for Temporal Signal Processing
     case 20
-        for i = memoryLength+1 : sequenceLength+memoryLength
+        for i = memoryLength+1 : sequenceLength+memoryLength+washout
             
             middleSum(i) = sum(outputSequence(i-(memoryLength-1):i));
             
@@ -56,7 +57,7 @@ switch(memoryLength)
         %% NRMSE = 0.4 eqivil to shift regesiter. Thus, lower requires non-linearity (NARMA 10)...
         %NRMSE ~0.15. Results of simulated system. Information processing using a single dynamical node as complex system
         
-        for i = memoryLength+1 : sequenceLength+memoryLength
+        for i = memoryLength+1 : sequenceLength+memoryLength+washout
             
             middleSum(i) = sum(outputSequence(i-(memoryLength-1):i));
             
@@ -70,7 +71,7 @@ switch(memoryLength)
         end
         
     case {30,40}
-         for i = memoryLength+1 : sequenceLength+memoryLength
+         for i = memoryLength+1 : sequenceLength+memoryLength+washout
             
             middleSum(i) = sum(outputSequence(i-(memoryLength-1):i));
             
@@ -88,7 +89,7 @@ switch(memoryLength)
 %         inputSequence = (upperDist-lowerDist)*rand(sequenceLength+memoryLength,1)+lowerDist;
 %         outputSequence = zeros(sequenceLength+memoryLength,1);
         
-        for i = memoryLength+1 : sequenceLength+memoryLength-1
+        for i = memoryLength+1 : sequenceLength+memoryLength-1+washout
             
             %collect delay
             for n = 1:memoryLength-1
@@ -105,5 +106,5 @@ switch(memoryLength)
         
 end
 
-inputSequence = inputSequence(memoryLength+1:end);
-outputSequence = outputSequence(memoryLength+1:end);
+inputSequence = inputSequence(memoryLength+washout+1:end);
+outputSequence = outputSequence(memoryLength+washout+1:end);

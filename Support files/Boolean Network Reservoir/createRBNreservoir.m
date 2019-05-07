@@ -15,8 +15,10 @@ for res = 1:config.popSize
         config.task_num_inputs = 1;
         config.task_num_outputs = 1;
     else
+       % inputSequence = dec2discreteInputVector(config.trainInputSequence);
         genotype(res).nInputUnits = size(config.trainInputSequence,2);
         genotype(res).nOutputUnits = size(config.trainOutputSequence,2);
+        
         config.task_num_inputs = size(config.trainInputSequence,2);
         config.task_num_outputs =size(config.trainOutputSequence,2);
     end

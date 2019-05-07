@@ -28,7 +28,8 @@ if config.globalParams
     if config.AddInputStates
         states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) inputSequence(config.nForgetPoints+1:end,:) x(config.nForgetPoints+1:end,:)];
     else
-        states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) x(config.nForgetPoints+1:end,:)];
+        %states = [ones(size(inputSequence(config.nForgetPoints+1:end,:))) x(config.nForgetPoints+1:end,:)];
+        states =  x(config.nForgetPoints+1:end,:);
     end
     
 else % no global params
