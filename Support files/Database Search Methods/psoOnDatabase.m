@@ -2,28 +2,35 @@
 function [final_error, final_metrics, best_indv, output] =  psoOnDatabase(config,database,genotype)
 
 rng(config.rngState,'twister');
+%record video
+vid = VideoWriter('psoSearch.avi');
+vid.FrameRate = 5;
+open(vid);
+
 config.track_pos = [];
 config.track_value = [];
         
 %call func
-nvars = 1;%length(config.metrics); 
+nvars = length(config.metrics);%1;%length(config.metrics); 
 fun = @(x) getError(x);
 
 options = optimoptions('particleswarm','SwarmSize',config.swarm_size,'HybridFcn',@fmincon,'MaxStallIterations',...
     config.maxStall,'MaxIterations',config.maxIter,'Display','iter','InertiaRange',config.InertiaRange,...
     'SelfAdjustmentWeight',config.SelfAdjustmentWeight,'SocialAdjustmentWeight',config.SocialAdjustmentWeight,'MinNeighborsFraction',config.MinNeigh,'PlotFcn',@pswplotswarm);%,'OutputFcn',@pswplotranges);
-lb= 1;%min(database);
-hb= length(database);%max(database);
+lb= min(database);%1;%min(database);
+hb= max(database);% length(database);%max(database);
+cnt =1; F =[];
 
+%run pso
 [metrics_pos,final_error,~,output] = particleswarm(fun,nvars,lb,hb,options);
-
+        
 best_indv = round(metrics_pos);
 final_metrics = database(round(metrics_pos),:);
 
     function y = getError(x)
-        %distances = pdist2(database,x);%[round(x(1)) x(2)]);
-        %[~,indx] = min(distances); 
-        indx = round(x);
+        distances = pdist2(database,round(x));%[round(x(1)) x(2)]);
+        [~,indx] = min(distances); 
+        %indx = round(x);
         
         %evaluate ESN on task
         task_error = assessDBonTasks(config,genotype(indx),database(indx,:));
@@ -33,10 +40,16 @@ final_metrics = database(round(metrics_pos),:);
     end
 
     function stop = pswplotswarm(optimValues,state)
-        stop = false; % This function does not stop the solver
-        s = round(optimValues.swarm);
+        set(gcf,'position', [24 349 1632 497]);
         
-        config.track_pos = [config.track_pos; s];
+        stop = false; % This function does not stop the solver
+                
+        distances = pdist2(database,round(optimValues.swarm));%[round(x(1)) x(2)]);
+        [~,s] = min(distances); 
+
+        %s = round(optimValues.swarm);
+        
+        config.track_pos = [config.track_pos s];
         config.track_value = [config.track_value; optimValues.swarmfvals];
         
         [~,top5_indx] = sort(config.track_value);
@@ -48,8 +61,8 @@ final_metrics = database(round(metrics_pos),:);
             num_plot_x = size(C,1)/2;
             num_plot_y = 2;
         else
-            num_plot_x = 3;
-            num_plot_y = 1;
+            num_plot_x = 1;
+            num_plot_y = 3;
         end
         
         for i = 1:size(C,1)
@@ -62,26 +75,32 @@ final_metrics = database(round(metrics_pos),:);
              
             % add colour to reservoirs been evaluated
             %scatter(config.track_pos(:,C(i,1)),config.track_pos(:,C(i,2)),10,config.track_value,'filled')
-            scatter(database(config.track_pos,C(i,1)),database(config.track_pos,C(i,2)),10,config.track_value,'filled')
-            
+            scatter(database(config.track_pos,C(i,1)),database(config.track_pos,C(i,2)),10,config.track_value,'filled')           
+              
+            % show swarm as blue
+            scatter(database(s,C(i,1)),database(s,C(i,2)),20,[0 0 1],'filled')
             
             % highlight top 5 locations
             %scatter(config.track_pos(top5_indx(1:5),C(i,1)),config.track_pos(top5_indx(1:5),C(i,2)),20,[1 0 0],'filled')
             scatter(database(config.track_pos(top5_indx(1:5)),C(i,1)),database(config.track_pos(top5_indx(1:5)),C(i,2)),20,[1 0 0],'filled')
             
-              
-            % show swarm as blue
-            scatter(database(s,C(i,1)),database(s,C(i,2)),20,[0 0 1],'filled')
             hold off
+            
+            if i ==2
+                title(strcat('Lowest error found: ',num2str(min(config.track_value),3),', Space searched: ',num2str((optimValues.funccount/length(database))*100,2),'%'))
+            end
             
             xlabel(config.metrics(C(i,1)))
             ylabel(config.metrics(C(i,2)))
-            legend({'All reservoirs','Evaluated','Top 5','Swarm'})
+            legend({'All reservoirs','Evaluated','Swarm','Top 5'})
             colormap('copper')
         end
         
         drawnow
-
+        %make video
+        F = getframe(gcf);
+        writeVideo(vid,F);
+        cnt = cnt +1;
     end
 
     function stop = pswplotranges(optimValues,state)
@@ -123,5 +142,7 @@ final_metrics = database(round(metrics_pos),:);
                 % No cleanup necessary
         end
     end
+
+close(vid)
 
 end

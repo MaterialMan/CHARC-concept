@@ -4,12 +4,13 @@ function genotype = createELM(config)
 %% Reservoir Parameters
 for res = 1:config.popSize
     % Assign neuron/model type (options: 'plain' and 'leaky', so far... 'feedback', 'multinetwork', 'LeakyBias')
-    %esnMajor(res).type = ''; %blank is standard sigmoid, subSample is only use a number of neuron states
     genotype(res).trainError = 1;
     genotype(res).valError = 1;
     genotype(res).testError = 1;
     
     genotype(res).inputShift = 1;
+
+    
     
     if config.startFull
         config.minMajorUnits = config.maxMajorUnits; %maxMinorUnits = 100;
@@ -36,8 +37,11 @@ for res = 1:config.popSize
         %define num of units
         genotype(res).esnMinor(i).nInternalUnits = randi([config.minMinorUnits config.maxMinorUnits]);
         % bias
-        genotype(res).esnMinor(i).bias = zeros(genotype(res).esnMinor(i).nInternalUnits,1); %adds bias/value shift to input signal
-
+        genotype(res).esnMinor(i).bias = 2*rand(genotype(res).esnMinor(i).nInternalUnits,1)-1; %adds bias/value shift to input signal
+        % Scaling
+        genotype(res).esnMinor(i).spectralRadius = 2*rand; %alters network dynamics
+        genotype(res).esnMinor(i).inputScaling = 2*rand-1; %increases nonlinearity
+    
         %assign different activations, if necessary
         if config.multiActiv 
             activPositions = randi(length(config.ActivList),1,genotype(res).esnMinor(i).nInternalUnits);
@@ -49,7 +53,7 @@ for res = 1:config.popSize
         end
     end
     
-    %end
+
     genotype(res).nTotalUnits = 0;
     
     %% connectivity to other reservoirs

@@ -16,10 +16,10 @@ for i = 1:size(genotype.nInternalUnits,2)
         [temp_esnMinor,genotype] = mutateLoser_hyper_init(genotype.esnMinor,genotype,1,i);
         genotype.esnMinor = temp_esnMinor;
         if config.multiActiv
-            actNum = randperm(length(esnMajor.reservoirActivationFunction),length(esnMajor.reservoirActivationFunction)*config.numMutate);
-            activPositions = randi(length(config.activList),1,length(esnMajor.reservoirActivationFunction)*config.numMutate);
+            actNum = randperm(length(genotype.reservoirActivationFunction),length(genotype.reservoirActivationFunction)*config.mutRate);
+            activPositions = randi(length(config.activList),1,length(genotype.reservoirActivationFunction)*config.mutRate);
             for act = 1:length(actNum)
-                esnMajor.reservoirActivationFunction{i,act} = config.activList(activPositions(act))';
+                genotype.reservoirActivationFunction{i,act} = config.activList(activPositions(act))';
             end
         end
     end

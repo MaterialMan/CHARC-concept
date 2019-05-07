@@ -1,4 +1,4 @@
-function [meanTrainRMSE,meanTestRMSE,trainedModel,output_data] = learnFNNModel(figureHandle,dataset,tests,...
+function [meanTrainRMSE,meanTestRMSE,trainedModel,output_data,minTestRMSE,maxTestRMSE] = learnFNNModel(figureHandle,dataset,tests,...
     NNsize,task,threshold,samples,output_data,plus_mat,num_test_substrates)
 % task: set what task to train for.
 % test_thresh: set what limit should be bound on target data.
@@ -14,23 +14,16 @@ for p = 1:num_subs
     %% pre processing
     x = dataset{p}.pred_dataset.inputs(samples{p},:)';
     t = dataset{p}.pred_dataset.outputs(samples{p},task)';
-    
-    x = x';
+       
     % remove bad reservoirs - NaNs and error > 1
     indx = t > threshold(task);
-    x(indx,:) = [];
+    x(:,indx) = [];
     t(indx) = [];
     
     indx2 = isnan(t);
-    x(indx2,:) = [];
+    x(:,indx2) = [];
     t(indx2) = [];
-       
-    % mean variance input data
-    for i = 1:size(x,2)
-        x(x(:,i) ~= 0,i) = (x(x(:,i) ~= 0,i)-mean(x(:,i)))/(max(x(:,i))-min(x(:,i)));
-    end
-    
-    x = x';
+        
     
     %assign data
     data = [x; t];
@@ -84,7 +77,10 @@ for pt = 1:num_subs-num_test_substrates % train res (excl. test substrates)
         end
         
         meanTestRMSE(pt,i) = mean(testRMSE);
+        minTestRMSE(pt,i) = min(testRMSE);
+        maxTestRMSE(pt,i) = max(testRMSE);
         % assign to tasks for later plots
+        %output_data = [y' t];
         switch(task)
             case 1
                 output_data.T1{pt,i} = [y' t];
@@ -115,26 +111,27 @@ else
     x = 1:num_subs-num_test_substrates;
     tick_labels = {'25','50','100','200','All'};
 end
-figure2 = figure;
-set(figure2,'Position',[652   134   642   496])
-set(0,'currentFigure',figure2)
-imagesc(meanTestRMSE(x,y)-diag(meanTestRMSE(x,y)));
-%title('\Delta')
-%title('RMSE')
-colormap(gca,bluewhitered)
-h = colorbar; 
-set(get(h,'label'),'string','\Delta');
-xticks(x_ticks)
-yticks(y_ticks)
-xticklabels(tick_labels)
-yticklabels(tick_labels)
-xlabel('Test')
-ylabel('Trained')
-set(gca,'FontSize',14,'FontName','Arial')
 
-A = meanTestRMSE(x,y)-diag(meanTestRMSE(x,y));
-B = meanTestRMSE(x,y);%A-diag(meanTestRMSE(x,y));
-setText(A,B)
+% figure2 = figure;
+% set(figure2,'Position',[652   134   642   496])
+% set(0,'currentFigure',figure2)
+% imagesc(meanTestRMSE(x,y)-diag(meanTestRMSE(x,y)));
+% %title('\Delta')
+% %title('RMSE')
+% colormap(gca,bluewhitered)
+% h = colorbar; 
+% set(get(h,'label'),'string','\Delta');
+% xticks(x_ticks)
+% yticks(y_ticks)
+% xticklabels(tick_labels)
+% yticklabels(tick_labels)
+% xlabel('Test')
+% ylabel('Trained')
+% set(gca,'FontSize',14,'FontName','Arial')
+% 
+% A = meanTestRMSE(x,y)-diag(meanTestRMSE(x,y));
+% B = meanTestRMSE(x,y);%A-diag(meanTestRMSE(x,y));
+% setText(A,B)
 
 
 

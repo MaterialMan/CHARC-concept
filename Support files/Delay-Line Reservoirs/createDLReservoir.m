@@ -31,10 +31,10 @@ for i = 1:config.popSize
         genotype(i).M = inputWeights;
     else % non-sparse weights
         % the correct one reported in the literature
-        genotype(i).M = 2*(round(rand(genotype(i).nInternalUnits,genotype(i).nInputUnits))*0.1)-0.1;%2*rand(genotype(i).nInternalUnits,genotype(i).nInputUnits)-1; %1/genotype.esnMinor(res,i).nInternalUnits
+        genotype(i).M = 2*(round(rand(genotype(i).nInternalUnits,genotype(i).nInputUnits))*0.1)-0.1;
         
-        %genotype(i).M = (rand(genotype(i).nInternalUnits,genotype(i).nInputUnits))+1;
-        %genotype(i).M = (2*rand(genotype(i).nInternalUnits,genotype(i).nInputUnits)-1)*0.1;
+        % random
+        %genotype(i).M = 2*rand(genotype(i).nInternalUnits,genotype(i).nInputUnits)-1;
     end
     
     
@@ -44,20 +44,18 @@ for i = 1:config.popSize
     genotype(i).inputShift = 1;                             % adds bias/value shift to input signal
     genotype(i).leakRate = rand;
     
-    %genotype(i).theta = 0.2; % distance between virtual nodes
-    %genotype(i).tau = round(genotype(i).theta*genotype(i).nInternalUnits);%max([10 round(10*rand)*10]);                                   % lenght of delay line
-    genotype(i).reservoirActivationFunction = 'mackey_glass_dde';    % func to calculate states 
+    genotype(i).reservoirActivationFunction = 'MG_dde23';%'mackey_glass3';    % func to calculate states 
     
     % mackey glass parameters: eta, gamma and p must be > 0
-    genotype(i).eta = rand;%0.4 + (-0.1 + rand*0.2);
-    genotype(i).gamma = rand;%0.1 + (-0.1 + rand*0.2);
-    genotype(i).p = 1;  %max([1 round(20*rand)]);%
-    genotype(i).x0 = 0.01;%2*rand;
+    genotype(i).eta = rand;
+    genotype(i).gamma = rand;
+    genotype(i).p = 1;  
+    genotype(i).x0 = 0.01;
     genotype(i).T = 1; %time-scale of node
     genotype(i).time_step = 0.1;
     
      % set reservoir specific parameters round(20*rand);	
-    genotype(i).tau = 600;% round(round(((genotype(i).nInternalUnits*2)-genotype(i).nInternalUnits*genotype(i).time_step)*rand+(genotype(i).nInternalUnits*genotype(i).time_step))/10)*10;%round(genotype.theta*genotype.nInternalUnits);  % lenght of delay line
+    genotype(i).tau = 80; % lenght of delay line
     genotype(i).theta = genotype(i).tau/genotype(i).nInternalUnits; % distance between virtual nodes
 
     

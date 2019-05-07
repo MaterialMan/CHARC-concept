@@ -9,7 +9,7 @@ end
 for i= 1:genotype.nInternalUnits
     for n = 2:length(inputSequence(:,1))
         if i == 1
-            states{i}(n,:) = feval(genotype.reservoirActivationFunction,inputSequence(n,:)*genotype.connectWeights{i,i} + genotype.esnMinor(i).bias');
+            states{i}(n,:) = feval(genotype.reservoirActivationFunction,(inputSequence(n,:)*genotype.esnMinor(i).inputScaling)*(genotype.connectWeights{i,i}*genotype.esnMinor(i).spectralRadius) + genotype.esnMinor(i).bias');
         else
             states{i}(n,:) = feval(genotype.reservoirActivationFunction,states{i-1}(n,:)*genotype.connectWeights{i,i} + genotype.esnMinor(i).bias');
         end

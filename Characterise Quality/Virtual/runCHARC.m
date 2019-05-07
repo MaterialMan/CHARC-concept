@@ -10,10 +10,15 @@ clear
 
 rng(1,'twister');
 
+%start paralllel pool if empty
+if isempty(gcp)
+    parpool; % create parallel pool
+end
+
 %% Setup
 % type of network to evolve
 config.resType = 'RoR_IA';                   % can use different hierarchical reservoirs. RoR_IA is default ESN.
-config.maxMinorUnits = 25;                   % num of nodes in subreservoirs
+config.maxMinorUnits = 50;                   % num of nodes in subreservoirs
 config.maxMajorUnits = 1;                   % num of subreservoirs. Default ESN should be 1.
 config = selectReservoirType(config);       %get correct functions for type of reservoir
 
@@ -25,10 +30,10 @@ config.leakOn = 1;                          % add leak states
 config.rand_connect =1;                     %radnomise networks
 config.activList = {'tanh';'linearNode'};   % what activations are in use when multiActiv = 1
 config.trainingType = 'Ridge';              %blank is psuedoinverse. Other options: Ridge, Bias,RLS
-config.AddInputStates = 0;                  %add input to states
+config.AddInputStates = 1;                  %add input to states
 config.regParam = 10e-5;                    %training regulariser
-config.metrics = {'KR','GR','MC'}; % metrics to use (and order of metrics)
-config.voxel_size = 5;                      % when measuring quality, pick a suitable voxel size 
+config.metrics = {'KR','MC'}; % metrics to use (and order of metrics)
+config.voxel_size = 10;                      % when measuring quality, pick a suitable voxel size 
 
 config.sparseInputWeights = 0;              % use sparse inputs
 config.restricedWeight = 0;                 % restrict weights to defined values
@@ -46,7 +51,7 @@ config.dataSet =[];
 %% Evolutionary parameters
 config.numTests = 1;                        % num of runs
 config.popSize = 200;                       % large pop better
-config.totalGens = 200;                    % num of gens
+config.totalGens = 1000;                    % num of gens
 config.mutRate = 0.1;                       % mutation rate
 config.deme_percent = 0.2;                  % speciation percentage
 config.deme = round(config.popSize*config.deme_percent);
@@ -66,10 +71,17 @@ figure1 =figure;
 config.saveGen = 200;                        % save at gen = saveGen
 config.paramIndx = 1;                       % record database; start from 1
 
+% prediction parameters
+get_prediction_data = 0;                %gather task performances
+config.taskList = {'NARMA10','NARMA30','Laser','NonChanEqRodan'}; % tasks to assess
+config.discrete = 0;                    % binary input for discrete systems
+config.nbits = 16;                       % if using binary/discrete systems
+config.preprocess = 1;                   % basic preprocessing, e.g. scaling and mean variance
+
 %% Run MicroGA
 for tests = 1:config.numTests
     
-    clearvars -except config tests storeError figure1 figure2 stats_novelty_KQ stats_novelty_MC total_space_covered all_databases
+    clearvars -except config get_prediction_data tests storeError figure1 figure2 stats_novelty_KQ stats_novelty_MC total_space_covered all_databases
 
     fprintf('\n Test: %d  ',tests);
     fprintf('Processing genotype......... %s \n',datestr(now, 'HH:MM:SS'))
@@ -86,9 +98,10 @@ for tests = 1:config.numTests
     metrics = [];
     
     %% Evaluate population and assess novelty
+    ppm = ParforProgMon('Initial population', config.popSize);
     parfor popEval = 1:config.popSize
         metrics(popEval,:) = getVirtualMetrics(genotype(popEval),config);
-         fprintf('\n indv: %d  ',popEval);
+        ppm.increment();
     end
     
     %% Create NS archive from initial population
@@ -208,12 +221,9 @@ for tests = 1:config.numTests
        end
     end
     
-    config.taskList = {'NARMA10','NARMA30','Laser','NonChanEqRodan'};
-    config.discrete = 0;               % binary input for discrete systems
-    config.nbits = 16;                       % if using binary/discrete systems
-    config.preprocess = 1;                   % basic preprocessing, e.g. scaling and mean variance
-    pred_dataset = assessDBonTasks(config,database_genotype,database,tests);
-
+    if get_prediction_data
+        pred_dataset = assessDBonTasks(config,database_genotype,database,tests);
+    end
 end
 
 %% fitness function

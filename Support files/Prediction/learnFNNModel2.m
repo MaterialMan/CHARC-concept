@@ -9,14 +9,11 @@ samples = 1:size(dataset(1).inputs,1);
 x = dataset.inputs(samples,:)';
 t = dataset.outputs(samples,:)';
 
-x = x';
-% mean variance input data
-for i = 1:size(x,2)
-    x(x(:,i) ~= 0,i) = (x(x(:,i) ~= 0,i)-mean(x(:,i)))/(max(x(:,i))-min(x(:,i)));
-end
-
-x = x';
-
+% % remove outliers
+% pos_outliers = isoutlier(t);
+% t(pos_outliers) = [];
+% x(:,pos_outliers)= [];
+    
 %assign data
 data = [x; t];
 

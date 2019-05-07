@@ -13,7 +13,7 @@ config.startFull = 1;                       % start with max network size
 config.alt_node_size = 0;                   % allow different network sizes
 config.multiActiv = 0;                      % use different activation funcs
 config.rand_connect = 1;                    % randomise networks
-config.activList = {'tanh';'linearNode'};   % what activations are in use when multiActiv = 1
+config.activList = {'sign'};   % what activations are in use when multiActiv = 1
 config.trainingType = 'Ridge';              % blank is psuedoinverse. Other options: Ridge, Bias,RLS
 
 
@@ -32,8 +32,8 @@ end
 
 %% Bz reservoir
 if strcmp(config.resType,'BZ')
-    config.plotBZ =1;
-    config.fft = 1;
+    config.plotBZ =0;
+    config.fft = 0;
     config.BZfigure1 = figure;
     config.BZfigure2 = figure; 
 end
@@ -41,7 +41,7 @@ end
 %% Graph params
 if strcmp(config.resType,'Graph')
     
-    config.substrate= 'Ring';            % Define substrate
+    config.substrate= 'Lattice';            % Define substrate
     % Examples: 'Lattice', 'Hypercube',
     % 'Torus','L-shape','Bucky','Barbell','Ring'
     
@@ -49,8 +49,8 @@ if strcmp(config.resType,'Graph')
     config.num_ensemble = 1;                % number of lattices
     
     % substrate params
-    config.N_rings = 1;                     % used with Torus     
-    config.latticeType = 'fullLattice';        % see creatLattice.m for different types.
+    config.N_rings = config.maxMajorUnits;     % used with Torus     
+    config.latticeType = 'fullCube';        % see creatLattice.m for different types.
     config.ruleType = config.latticeType;       % used with Torus, 5 neighbours (Von Neumann) or 8 neighbours (Moore's)
     
     % Examples: 'basicLattice','partialLattice','fullLattice','basicCube','partialCube','fullCube',
@@ -59,7 +59,7 @@ if strcmp(config.resType,'Graph')
     config.actvFunc = 'tanh';               % decide activation fcn of node.
     config.plotStates = 0;                  % plot states in real-time.
     config.nearest_neighbour = 0;           % choose radius of nearest neighbour, or set to 0 for direct neighbour.
-    config.directedGraph = 1;               % directed graph (i.e. weight for all directions).
+    config.directedGraph = 0;               % directed graph (i.e. weight for all directions).
     config.self_loop = 1;                   % give node a loop to self.
     config.inputEval = 0;                   % add input directly to node, otherwise node takes inputs value.
     config = getShape(config);              % call function to make graph.
@@ -204,10 +204,10 @@ if strcmp(config.resType,'2dCA')
 end
 
 %% delay-line reservoirs
-if strcmp(config.resType,'DL')
-    config.DLtype = 'mackey_glass2';%'ELM';%'virtualNodes';
-    %config.tau = 100;
-end
+% if strcmp(config.resType,'DL')
+%     config.DLtype = 'mackey_glass2';%'ELM';%'virtualNodes';
+%     %config.tau = 100;
+% end
 
 %% Task bottom of list
 if strcmp(config.dataSet,'autoencoder')
@@ -227,9 +227,7 @@ if strcmp(config.dataSet,'poleBalance')
     config.evolveOutputWeights = 1;
 end
 
-if strcmp(config.dataSet,'BinaryNbitAdder') 
-    
-    
+if strcmp(config.dataSet,'BinaryNbitAdder')   
     if strcmp(config.resType,'Graph')
         %config.directedGraph = 1;               % directed graph (i.e. weight for all directions).
         %config.self_loop = 1;

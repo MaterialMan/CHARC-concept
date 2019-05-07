@@ -11,6 +11,19 @@ for i = 1:genotype.nInternalUnits
     %         end
     %     end
 
+
+    % mutate inputscaling
+    b = genotype.esnMinor(i).inputScaling;
+    pos =  randi([1 length(b)],round(config.mutRate*length(b)),1);
+    b(pos) = 2*rand(length(pos),1)-1;
+    genotype.esnMinor(i).inputScaling = b;
+    
+    % mutate spectral radius
+    b = genotype.esnMinor(i).spectralRadius;
+    pos =  randi([1 length(b)],round(config.mutRate*length(b)),1);
+    b(pos) = 2*rand(length(pos),1)-1;
+    genotype.esnMinor(i).spectralRadius = b;
+    
     % mutate bias
     b = genotype.esnMinor(i).bias;
     pos =  randi([1 length(b)],round(config.mutRate*length(b)),1);

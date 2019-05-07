@@ -66,13 +66,12 @@ for res = 1:config.popSize
         
         %assign different activations, if necessary
         if config.multiActiv 
-            activPositions = randi(length(config.ActivList),1,genotype(res).esnMinor(i).nInternalUnits);
+            activPositions = randi(length(config.activList),1,genotype(res).esnMinor(i).nInternalUnits);
             for act = 1:length(activPositions)
-                genotype(res).reservoirActivationFunction{i,act} = config.ActivList{activPositions(act)};
+                genotype(res).reservoirActivationFunction{i,act} = config.activList{activPositions(act)};
             end
         else
-            genotype(res).reservoirActivationFunction = 'tanh';
-            
+            genotype(res).reservoirActivationFunction = 'tanh';    
         end
     end
     
@@ -113,4 +112,6 @@ for res = 1:config.popSize
         genotype(res).state_loc(randperm(size(genotype(res).state_loc,1),round(randi([1 round(size(genotype(res).state_loc,1))])*genotype(res).state_perc))) = 1;
         genotype(res).totalStates = sum(genotype(res).state_loc);
     end
+    
+    genotype(res).metrics = [];
 end

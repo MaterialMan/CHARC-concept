@@ -24,7 +24,7 @@ switch(config.resType)
         config.recFcn = @recombRoR;
         config.hierarchy = 1;
         
-    case 'RoR_IA_delay'
+    case 'RoR_IA_delay' % not working yet
         config.createFcn = @createDelayRoR;
         config.assessFcn = @collectDeepDelayStates_IA;
         config.mutFcn = @mutateRoRdelay;
