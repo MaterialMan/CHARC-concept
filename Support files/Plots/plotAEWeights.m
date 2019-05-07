@@ -13,10 +13,13 @@ switch(config.resType)
           sample.EncoderWeights = full(genotype.w_in.*genotype.inputScaling)'; % N by U
     case 'DNA'
          sample.EncoderWeights = full(genotype.w_in.*genotype.inputScaling)'; % N by U
+   case 'ELM'
+         sample.EncoderWeights = full(genotype.connectWeights{1,1}); % N by U
   
     otherwise
         sample.EncoderWeights = full(genotype.esnMinor.inputWeights(:,2:end).*genotype.esnMinor.inputScaling)'; % N by U
 end
+
 plotWeights(sample);
 
 [~,~,outputSequence] = testReservoir(genotype,config);

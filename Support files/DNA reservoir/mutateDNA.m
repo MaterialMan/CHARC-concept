@@ -35,7 +35,7 @@ GateCon(pos) = randi([0 2500],length(pos),1);
 genotype.GateCon = reshape(GateCon,size(genotype.GateCon));
 
 
-% w_in
+% input weights
 w_in = genotype.w_in(:);
 pos =  randi([1 length(w_in)],round(config.mutRate*length(w_in)),1);
 if config.restricedWeight
@@ -45,8 +45,6 @@ else
 end
 genotype.w_in = reshape(w_in,size(genotype.w_in));
 
-
-
 % % input_loc
 % for i = 1:length(genotype.input_loc)
 %     if rand < config.mutRate
@@ -54,6 +52,7 @@ genotype.w_in = reshape(w_in,size(genotype.w_in));
 %     end
 % end
 % genotype.totalInputs = sum(genotype.input_loc);
+
 
 if config.evolvedOutputStates
     

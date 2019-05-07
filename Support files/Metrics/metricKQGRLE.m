@@ -1,7 +1,7 @@
 % Separation Metrics and Kernel Quality
 function [meanLE, kernel_rank, gen_rank,rank_diff] = metricKQGRLE(genotype,config)
 
-if config.use_metric (1)
+if config.use_metric(1)
     
     scurr = rng;
     temp_seed = scurr.Seed;
@@ -27,7 +27,7 @@ if config.use_metric (1)
     
     ui = bestUi;
     
-    inputSequence =repmat(ui(:,1),1,N);
+    inputSequence = repmat(ui(:,1),1,N);
     
     %kernel matrix - pick 'to' at halfway point
     M = config.assessFcn(genotype,inputSequence,config);
@@ -43,7 +43,7 @@ if config.use_metric (1)
     full_rank_sum = 0;
     e_rank = 1;
     for i = 1:length(s)
-        full_rank_sum = full_rank_sum +s(i);
+        full_rank_sum = full_rank_sum + s(i);
         while (tmp_rank_sum < full_rank_sum * 0.99)
             tmp_rank_sum = tmp_rank_sum + s(e_rank);
             e_rank= e_rank+1;
@@ -51,6 +51,7 @@ if config.use_metric (1)
     end
     kernel_rank = e_rank-1;
     
+    kernel_rank = kernel_rank/size(M,2);
 else
     kernel_rank =[];
 end
@@ -58,7 +59,21 @@ end
 %% LE measure
 %[meanLE] = LEmetrics(esn);
 if config.use_metric(3)
-    meanLE = LEmetrics_DeepESN(genotype,config);
+   % meanLE = LEmetrics_DeepESN(genotype,config);
+   inputSequence = ones(1000,1);
+   
+   X = config.assessFcn(genotype,inputSequence,config);
+   C = X'*X;
+   
+   X_eig = eig(C);
+   
+   normX_eig = X_eig./sum(X_eig);
+   
+   H = -sum(normX_eig.*log2(normX_eig));
+   
+   meanLE = real(H/log2(size(X,2)));
+   
+   meanLE(isnan(meanLE)) = 0;
 else
     meanLE = [];
 end
@@ -95,9 +110,13 @@ if config.use_metric(2)
     end
     gen_rank = e_rank-1;
     
+    gen_rank = gen_rank/size(M,2);
+    
 else
     gen_rank  =[];
 end
+
+
 
 %calculate difference
 if config.use_metric(1) && config.use_metric(2)

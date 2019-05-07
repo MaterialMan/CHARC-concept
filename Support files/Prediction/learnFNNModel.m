@@ -1,118 +1,158 @@
-function [rmseNN,maeNN,testRMSE,testMAE] = learnFNNModel(figureHandle,test_thresh,task,tests,test_thresh_name, num_feat)
+function [meanTrainRMSE,meanTestRMSE,trainedModel,output_data,minTestRMSE,maxTestRMSE] = learnFNNModel(figureHandle,dataset,tests,...
+    NNsize,task,threshold,samples,output_data,plus_mat,num_test_substrates)
 % task: set what task to train for.
 % test_thresh: set what limit should be bound on target data.
 % tests: how many models to train.
 
-NNsize = 100;
+% samples{1:4} = 1:21990;%size(dataset{1}.pred_dataset.inputs,1);%randi([1 size(dataset(1).inputs,1)],1000,1);
+% samples{5:6} = 1:2199;%size(dataset{1}.pred_dataset.inputs,1);%randi([1 size(dataset(1).inputs,1)],1000,1);
 
-dataset =[];
-for res = [25 50 100 200]
-    load(strcat('assessed_dB_forPrediction_',num2str(res),'nodes_21990dbSize.mat'),'pred_dataset')
-    dataset = [dataset; pred_dataset];
-end
+num_subs = length(dataset);
 
-fprintf('Loaded data. Learning models........\n')
-
-for p = 1:4
+for p = 1:num_subs
+    
     %% pre processing
-    ext_data =[];
-    x = dataset(p).inputs';
-    t = dataset(p).outputs(:,task)';
-    
-    indx = isnan(t);
-    t(indx) = [];
+    x = dataset{p}.pred_dataset.inputs(samples{p},:)';
+    t = dataset{p}.pred_dataset.outputs(samples{p},task)';
+       
+    % remove bad reservoirs - NaNs and error > 1
+    indx = t > threshold(task);
     x(:,indx) = [];
-    
-    indx = t > test_thresh; %0.8
     t(indx) = [];
-    x(:,indx) = [];
     
-    ext_data(1:3,:) = x;
-    
-    if num_feat > 3
-        ext_data(4,:) = x(1,:)-x(2,:);
-        ext_data(5,:) = sqrt(abs(x(1,:)-x(2,:)));
-        ext_data(6,:) = x(1,:).^2 + x(2,:).^2 + x(3,:).^2;
-        ext_data(7,:) = abs(x(1,:)-x(2,:));
-        ext_data(8,:) = sqrt(abs(x(1,:)-x(2,:)));
-        ext_data(9:11,:) = round(x);
+    indx2 = isnan(t);
+    x(:,indx2) = [];
+    t(indx2) = [];
         
-        ext_data(12,:) = t;
+    
+    %assign data
+    data = [x; t];
+    
+    % train only on ESNs
+    if p <= num_subs-num_test_substrates
+        % partition data equally between training and test set
+        [train_set{p},test_set{p}]= preprocessCHARCdataset(data',70);
+        
+        %% train model
+        for test = 1:tests
+            [trainedModel{p,test},~,trainRMSE(p,test)] = trainFNNpredictor(train_set{p},NNsize);
+            fprintf('Test = %d, RMSE = %.4f \n',test,trainRMSE(p,test));
+        end
+        
+          %calculate mean
+        meanTrainRMSE = mean(trainRMSE,2);
     else
-        ext_data(4,:) = t;
+        %assign data for substrates straight to test set
+        test_set{p} = data';
+        
+         %dummy mean
+        meanTrainRMSE = 1;
     end
-    
-    % flip
-    data{p} = ext_data';
-    
     fprintf('Preprocessed data........\n')
     
-    %% train model
-    parfor test = 1:tests
-        [trainedModel{p,test}, maeNN(p,test),rmseNN(p,test)] = trainFNNpredictor(data{p},NNsize);
-        fprintf('Size = %d, test = %d, RMSE = %.4f, MAE = %.4f \n',p,test,rmseNN(p,test),maeNN(p,test));
-    end
-    
+  
 end
+
+
+
 fprintf('Testing learnt models........\n')
 
 %% test models on each dataset
-parfor pt = 1:4 % different res datasets
-    for i = 1:4 % test on each res size
+for pt = 1:num_subs-num_test_substrates % train res (excl. test substrates)
+    for i = 1:num_subs % test on each substrate
         for tst = 1:tests
-            tempModel = trainedModel{pt,tst};
-            y = tempModel(data{i}(:,1:size(data{i},2)-1)');
-            t = data{i}(:,size(data{i},2));
-            testRMSE(pt,i,tst) = sqrt(mean((t-y').^2));
-            testMAE(pt,i,tst) = mae(t-y');
+            tempModel = trainedModel{pt,tst};                   % get trained model - predicts performance of substrate given substrate behaviour
+            y = tempModel(test_set{i}(:,1:size(test_set{i},2)-1)');     % output of trained model, given metrics as inputs
+            t = test_set{i}(:,size(test_set{i},2));                     % target error for given metrics
+            testRMSE(tst) = sqrt(mean((t-y').^2));  %(pt,i,tst)       % calculate error of model
+
+            figure(figureHandle)
+            scatter(y',t)
+            line([0 1], [0 1],'Color','r')
+            xlim([0 max(y)])
+            ylim([0 max(t)])
+            xlabel('Predicted')
+            ylabel('Actual')
+              
+        end
+        
+        meanTestRMSE(pt,i) = mean(testRMSE);
+        minTestRMSE(pt,i) = min(testRMSE);
+        maxTestRMSE(pt,i) = max(testRMSE);
+        % assign to tasks for later plots
+        %output_data = [y' t];
+        switch(task)
+            case 1
+                output_data.T1{pt,i} = [y' t];
+            case 2
+                output_data.T2{pt,i} = [y' t];
+            case 3
+                output_data.T3{pt,i} = [y' t];
+            case 4
+                output_data.T4{pt,i} = [y' t];
         end
     end
 end
 
+%meanTestRMSE = mean(testRMSE,3);
+
 %% plot difference in model prediction
-set(figureHandle,'Position',[575   514   896   293])
-set(0,'currentFigure',figureHandle)
-subplot(1,2,1)
-imagesc(mean(testRMSE,3)-diag(mean(testRMSE,3)));
-title('RMSE')
-colormap(gca,bluewhitered)
-colorbar
-xticks([1,2,3,4])
-yticks([1,2,3,4])
-xticklabels({'25','50','100','200'})
-yticklabels({'25','50','100','200'})
-xlabel('Test')
-ylabel('Trained')
-set(gca,'FontSize',12,'FontName','Arial')
-setText(mean(testRMSE,3),mean(testRMSE,3)-diag(mean(testRMSE,3)))
+% plot without difference
+if plus_mat
+    x_ticks = 1:num_subs;
+    y_ticks = 1:num_subs-num_test_substrates;
+    tick_labels = {'25','50','100','200','CNT','DL'};
+    y = 1:num_subs;
+    x = 1:num_subs-num_test_substrates;
+else
+    x_ticks = 1:num_subs-num_test_substrates;
+    y_ticks = 1:num_subs-num_test_substrates;
+    y = 1:num_subs-num_test_substrates;
+    x = 1:num_subs-num_test_substrates;
+    tick_labels = {'25','50','100','200','All'};
+end
+
+% figure2 = figure;
+% set(figure2,'Position',[652   134   642   496])
+% set(0,'currentFigure',figure2)
+% imagesc(meanTestRMSE(x,y)-diag(meanTestRMSE(x,y)));
+% %title('\Delta')
+% %title('RMSE')
+% colormap(gca,bluewhitered)
+% h = colorbar; 
+% set(get(h,'label'),'string','\Delta');
+% xticks(x_ticks)
+% yticks(y_ticks)
+% xticklabels(tick_labels)
+% yticklabels(tick_labels)
+% xlabel('Test')
+% ylabel('Trained')
+% set(gca,'FontSize',14,'FontName','Arial')
+% 
+% A = meanTestRMSE(x,y)-diag(meanTestRMSE(x,y));
+% B = meanTestRMSE(x,y);%A-diag(meanTestRMSE(x,y));
+% setText(A,B)
 
 
-subplot(1,2,2)
-imagesc(mean(testMAE,3)-diag(mean(testMAE,3)));
-title('MAE')
-colormap(gca,bluewhitered)
-colorbar
-xticks([1,2,3,4])
-yticks([1,2,3,4])
-xticklabels({'25','50','100','200'})
-yticklabels({'25','50','100','200'})
-xlabel('Test')
-ylabel('Trained')
-set(gca,'FontSize',12,'FontName','Arial')
-setText(mean(testMAE,3),mean(testMAE,3)-diag(mean(testMAE,3)))
+
+% plot difference
+% figure1 = figure;
+% set(figure1,'Position',[652   134   642   496])
+% set(0,'currentFigure',figure1)
+% imagesc(mean(testRMSE,3)-diag(mean(testRMSE,3)));
+% title('RMSE')
+% colormap(gca,bluewhitered)
+% colorbar
+% xticks(x_ticks)
+% yticks(y_ticks)
+% xticklabels(tick_labels)
+% yticklabels(tick_labels)
+% xlabel('Test')
+% ylabel('Trained')
+% set(gca,'FontSize',12,'FontName','Arial')
+% setText(mean(testRMSE,3),mean(testRMSE,3)-diag(mean(testRMSE,3)))
 
 set(gcf,'renderer','OpenGL')
-
-switch(task)
-    case 1
-        print(strcat('predict_N10_thres',test_thresh_name,'_nFeatures_',num2str(num_feat)),'-dpdf','-bestfit')
-    case 2
-        print(strcat('predict_N30_thres',test_thresh_name,'_nFeatures_',num2str(num_feat)),'-dpdf','-bestfit')
-    case 3
-        print(strcat('predict_Laser_thres',test_thresh_name,'_nFeatures_',num2str(num_feat)),'-dpdf','-bestfit')
-    case 4
-        print(strcat('predict_NonChan_thres',test_thresh_name,'_nFeatures_',num2str(num_feat)),'-dpdf','-bestfit')
-end
 
 
 %% overlay text
@@ -120,11 +160,11 @@ function setText(mat,mat2)
 
 textStrings = num2str(mat(:), '%0.2f');       % Create strings from the matrix values
 textStrings = strtrim(cellstr(textStrings));  % Remove any space padding
-[x1, y1] = meshgrid(1:length(mat));  % Create x and y coordinates for the strings
+[x1, y1] = meshgrid(1:size(mat,2),1:size(mat,1));  % Create x and y coordinates for the strings
 hStrings = text(x1(:), y1(:), textStrings(:), ...  % Plot the strings
-    'HorizontalAlignment', 'center');
+    'HorizontalAlignment', 'center','FontSize',14,'FontName','Arial');
 midValue = mean(get(gca, 'CLim'));  % Get the middle value of the color range
-textColors = repmat(abs(mat2(:)) > mean(mat(:))*0.3, 1, 3);  % Choose white or black for the
+textColors = repmat(abs(mat(:)) > mean(mat2(:))*0.3, 1, 3);  % Choose white or black for the
 %   text color of the strings so
 %   they can be easily seen over
 %   the background color

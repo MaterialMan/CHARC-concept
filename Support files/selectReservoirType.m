@@ -2,19 +2,34 @@
 function config = selectReservoirType(config)
 
 switch(config.resType)
+    
+    case 'ELM'
+        config.createFcn = @createELM;
+        config.assessFcn = @collectDeepStates_ELM;
+        config.mutFcn = @mutateELM;
+        config.recFcn = @recombELM;
+        config.hierarchy = 1;
+        
     case 'RoR' 
         config.createFcn = @createRoR;
         config.assessFcn = @collectDeepStates_nonIA;
         config.mutFcn = @mutateRoR;
         config.recFcn = @recombRoR;
         config.hierarchy = 1;
-        
+         
     case 'RoR_IA'
         config.createFcn = @createRoR;
         config.assessFcn = @collectDeepStates_IA;
         config.mutFcn = @mutateRoR;
         config.recFcn = @recombRoR;
-         config.hierarchy = 1;
+        config.hierarchy = 1;
+        
+    case 'RoR_IA_delay' % not working yet
+        config.createFcn = @createDelayRoR;
+        config.assessFcn = @collectDeepDelayStates_IA;
+        config.mutFcn = @mutateRoRdelay;
+        config.recFcn = @recombRoR;
+        config.hierarchy = 1;
         
     case 'Pipeline'
         config.createFcn = @createDeepReservoir_pipeline;
@@ -73,6 +88,19 @@ switch(config.resType)
         config.assessFcn = @assessDNAreservoir;
         config.mutFcn = @mutateDNA;
         config.recFcn = @recombDNA;
+        
+    case 'DL'
+        config.createFcn = @createDLReservoir;
+        config.assessFcn = @collectDLStates;
+        config.mutFcn = @mutateDL;
+        config.recFcn = @recombDL;
+        
+    case 'instrRes'
+        config.createFcn = @createInstruReservoir;
+        config.assessFcn = @assessInstru;
+        config.mutFcn = @mutateInstru;
+        config.recFcn = @recombInstru;
+        
 end
 
 config.testFcn = @testReservoir; % default for all
